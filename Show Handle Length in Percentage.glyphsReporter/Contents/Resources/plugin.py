@@ -71,36 +71,37 @@ class showHandleLengthPercentages(ReporterPlugin):
 	def foregroundInViewCoords(self, layer):
 		""" Draw stuff on the screen """
 		scale = self.getScale()
-		if layer.paths:
-			for path in layer.paths:
-				for node in path.nodes:
-					if node.smooth == True:
-						if node.selected == True or node.nextNode.selected == True or node.prevNode.selected == True:
-							hypotenuses = []
-							offcurveNodes = [ node.prevNode, node.nextNode ]
-							
-							# Calculate the hypotenuses
-							for i, offcurve in enumerate( offcurveNodes ):
-								pos1 = node.position
-								pos2 = offcurve.position
-								hypotenuses.append( math.hypot( pos1.x - pos2.x , pos1.y - pos2.y ) )
-							
-							# Calculate the percentages
-							factor = 100 / ( hypotenuses[0] + hypotenuses[1] )
-							# Draw the percentages
-							for i, offcurve in enumerate( offcurveNodes ):
-								percent = round( hypotenuses[i] * factor, 1 )
-								pos1 = node.position
-								pos2 = offcurve.position
-								labelPosition = NSPoint( pos1.x + ( pos2.x - pos1.x ) / 2 , pos1.y + ( pos2.y - pos1.y ) / 2 )
-								self.drawRoundedRectangleForStringAtPosition( u"%s%%" % str(percent), labelPosition, 8 * scale )
+		if scale >= 0.75:
+			if layer.paths:
+				for path in layer.paths:
+					for node in path.nodes:
+						if node.smooth == True:
+							if node.selected == True or node.nextNode.selected == True or node.prevNode.selected == True:
+								hypotenuses = []
+								offcurveNodes = [ node.prevNode, node.nextNode ]
+								
+								# Calculate the hypotenuses
+								for i, offcurve in enumerate( offcurveNodes ):
+									pos1 = node.position
+									pos2 = offcurve.position
+									hypotenuses.append( math.hypot( pos1.x - pos2.x , pos1.y - pos2.y ) )
+								
+								# Calculate the percentages
+								factor = 100 / ( hypotenuses[0] + hypotenuses[1] )
+								# Draw the percentages
+								for i, offcurve in enumerate( offcurveNodes ):
+									percent = round( hypotenuses[i] * factor, 1 )
+									pos1 = node.position
+									pos2 = offcurve.position
+									labelPosition = NSPoint( pos1.x + ( pos2.x - pos1.x ) / 2 , pos1.y + ( pos2.y - pos1.y ) / 2 )
+									self.drawRoundedRectangleForStringAtPosition( u"%s%%" % str(percent), labelPosition, 8 * scale )
 
-							# Draw the angle
-							pos1 = node.prevNode.position
-							pos2 = node.nextNode.position
-							angle = self.getAngle( pos1, pos2 )
-							labelPosition = NSPoint( node.position.x , node.position.y )
-							self.drawRoundedRectangleForStringAtPosition( u"%s°" % str(angle), labelPosition, 8 * scale, isAngle=True )
+								# Draw the angle
+								pos1 = node.prevNode.position
+								pos2 = node.nextNode.position
+								angle = self.getAngle( pos1, pos2 )
+								labelPosition = NSPoint( node.position.x , node.position.y )
+								self.drawRoundedRectangleForStringAtPosition( u"%s°" % str(angle), labelPosition, 8 * scale, isAngle=True )
 
 
 	def __file__(self):
