@@ -16,13 +16,14 @@ from GlyphsApp import *
 from GlyphsApp.plugins import *
 
 
-class showOffcurveProportions(ReporterPlugin):
+class showHandleLengthPercentages(ReporterPlugin):
 
 	def settings(self):
-		self.menuName = Glyphs.localize({'en': u'Handle Length in Percentage'})
+		self.menuName = Glyphs.localize({'en': u'Handle Length Percentages'})
 	
+
 	def drawRoundedRectangleForStringAtPosition(self, thisString, center, fontsize ):
-		''' Adapted from Stem Thickness by Rafał Buchner '''
+		""" Adapted from Stem Thickness by Rafał Buchner """
 		scale = self.getScale()
 		scaledSize = fontsize / scale
 		width = len(thisString) * scaledSize
@@ -36,7 +37,7 @@ class showOffcurveProportions(ReporterPlugin):
 		panel = NSRect()
 		panel.origin = NSPoint( x-width/2-rim, y-scaledSize/2-rim )
 		panel.size = NSSize( width + rim*2, scaledSize + rim*2 )
-		NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.8,.2,.7 ).set()
+		NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.8,.2,.7 ).set() # yellow
 		NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_( panel, scaledSize*0.5, scaledSize*0.5 ).fill()
 		
 		# Draw text label
@@ -48,6 +49,7 @@ class showOffcurveProportions(ReporterPlugin):
 		
 
 	def foregroundInViewCoords(self, layer):
+		""" Draw stuff on the screen """
 		scale = self.getScale()
 		if layer.paths:
 			for path in layer.paths:
@@ -73,25 +75,8 @@ class showOffcurveProportions(ReporterPlugin):
 									pos2 = offcurve.position
 									labelPosition = NSPoint( pos1.x + ( pos2.x - pos1.x ) / 2 , pos1.y + ( pos2.y - pos1.y ) / 2 )
 									self.drawRoundedRectangleForStringAtPosition( str(percent), labelPosition, 8 * scale )
-									
-								
 
-	# def inactiveLayer(self, layer):
-	# 	NSColor.redColor().set()
-	# 	if layer.paths:
-	# 		layer.bezierPath.fill()
-	# 	if layer.components:
-	# 		for component in layer.components:
-	# 			component.bezierPath.fill()
 
-	# def preview(self, layer):
-	# 	NSColor.blueColor().set()
-	# 	if layer.paths:
-	# 		layer.bezierPath.fill()
-	# 	if layer.components:
-	# 		for component in layer.components:
-	# 			component.bezierPath.fill()
-	
 	def __file__(self):
 		"""Please leave this method unchanged"""
 		return __file__
