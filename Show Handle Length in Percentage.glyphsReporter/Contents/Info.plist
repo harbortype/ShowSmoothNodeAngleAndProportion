@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleDisplayName</key>
+	<string>Show Handle Length in Percentage</string>
+	<key>CFBundleExecutable</key>
+	<string>plugin</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.harbortype.showHandleLengthInPercentage</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Show Handle Length in Percentage</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>UpdateFeedURL</key>
+	<string>____OnlineUrlToThisPlist____</string>
+	<key>productPageURL</key>
+	<string>____ProductPageURL____</string>
+	<key>productReleaseNotes</key>
+	<string>Initial release.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright, Harbor Type, 2019</string>
+	<key>NSPrincipalClass</key>
+	<string>showHandleLengthInPercentage</string>
+	<key>PyMainFileNames</key>
+	<array>
+		<string>../MacOS/main.py</string>
+	</array>
+</dict>
+</plist>
