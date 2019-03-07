@@ -78,7 +78,7 @@ class showKinkHelper(ReporterPlugin):
 			NSColor.colorWithCalibratedRed_green_blue_alpha_( .9,.9,.9,.5 ).set() # light gray
 		else:
 			# If angle or proportion is NOT the same
-			NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.8,.2,.8 ).set() # yellow
+			NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.9,.4,.7 ).set() # yellow
 
 		# Configure text label
 		string = NSString.stringWithString_(string)
@@ -247,7 +247,7 @@ class showKinkHelper(ReporterPlugin):
 							panel = NSRect()
 							panel.size = NSSize( width + margin*2 , width + margin*2 )
 							panel.origin = NSPoint( x - width/2 - margin, y - width/2 - margin )
-							NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.8,.2,.8 ).set() # yellow
+							NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.9,.4,.7 ).set() # yellow
 							NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_( panel, (width+margin*2)*0.5, (width+margin*2)*0.5 ).fill()
 
 
