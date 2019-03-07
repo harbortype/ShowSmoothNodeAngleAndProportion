@@ -169,7 +169,7 @@ class showKinkHelper(ReporterPlugin):
 		global masterIds
 		masterIds = self.getMasterIDs(layer)
 		scale = self.getScale()
-		if layer.paths:
+		if layer.paths and len(layer.selection) == 1:
 			for p, path in enumerate( layer.paths ):
 				for n, node in enumerate( path.nodes ):
 					if node.smooth:
