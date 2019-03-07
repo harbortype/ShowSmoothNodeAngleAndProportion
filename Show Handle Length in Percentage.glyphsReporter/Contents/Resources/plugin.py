@@ -15,7 +15,6 @@ import objc, math
 from GlyphsApp import *
 from GlyphsApp.plugins import *
 
-handleSize = 5 + Glyphs.handleSize * 2.5 # (= 5.0 or 7.5 or 10.0)
 masterIds = []
 
 
@@ -23,6 +22,13 @@ class showKinkHelper(ReporterPlugin):
 
 	def settings(self):
 		self.menuName = Glyphs.localize({'en': u'Kink Helper'})
+
+
+	def getHandleSize(self):
+		handleSizes = (5, 8, 12)
+		handleSizeIndex = Glyphs.handleSize 
+		handleSize = handleSizes[handleSizeIndex]*self.getScale()**0.1 # scaled diameter
+		return handleSize
 
 
 	def getMasterIDs(self, layer):
@@ -52,6 +58,7 @@ class showKinkHelper(ReporterPlugin):
 		global masterIds
 		layer = Glyphs.font.selectedLayers[0]
 		scale = self.getScale()
+		handleSize = self.getHandleSize()
 		
 		scaledSize = fontsize / scale
 		width = len(string) * scaledSize
@@ -196,6 +203,53 @@ class showKinkHelper(ReporterPlugin):
 							compatibleAngles = self.compatibleAngles( p, n, angle )
 							labelPosition = NSPoint( node.position.x , node.position.y )
 							self.drawRoundedRectangleForStringAtPosition( u"%s°" % str(angle), labelPosition, 8 * scale, isAngle=True, compatible=compatibleAngles )
+
+
+	def backgroundInViewCoords(self, layer):
+		""" Mark the nodes that may produce kinks """
+		global masterIds
+		masterIds = self.getMasterIDs(layer)
+		scale = self.getScale()
+		handleSize = self.getHandleSize()
+		if layer.paths and layer.layerId in masterIds:
+			for p, path in enumerate( layer.paths ):
+				for n, node in enumerate( path.nodes ):
+					if node.smooth:
+						hypotenuses = []
+						offcurveNodes = [ node.prevNode, node.nextNode ]
+						
+						# Calculate the hypotenuses
+						for i, offcurve in enumerate( offcurveNodes ):
+							pos1 = node.position
+							pos2 = offcurve.position
+							hypotenuses.append( math.hypot( pos1.x - pos2.x , pos1.y - pos2.y ) )
+						
+						# Calculate the percentages
+						factor = 100 / ( hypotenuses[0] + hypotenuses[1] )
+						compatibleProportions = self.compatibleProportions( p, n, hypotenuses )
+							
+						# Get the angle
+						pos1 = node.prevNode.position
+						pos2 = node.nextNode.position
+						angle = self.getAngle( pos1, pos2 )
+						compatibleAngles = self.compatibleAngles( p, n, angle )
+						
+						if not compatibleAngles and not compatibleProportions:
+							# scaledSize = fontsize / scale
+							width = handleSize*2
+							margin = 0
+							currentTab = Glyphs.font.currentTab
+							origin = currentTab.selectedLayerOrigin
+							center = NSPoint( node.position.x * scale + origin[0] , node.position.y * scale + origin[1] )
+							x, y = center
+							
+							# Draw rounded rectangle
+							panel = NSRect()
+							panel.size = NSSize( width + margin*2 , width + margin*2 )
+							panel.origin = NSPoint( x - width/2 - margin, y - width/2 - margin )
+							NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.8,.2,.8 ).set() # yellow
+							NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_( panel, (width+margin*2)*0.5, (width+margin*2)*0.5 ).fill()
+
 
 
 	def __file__(self):
