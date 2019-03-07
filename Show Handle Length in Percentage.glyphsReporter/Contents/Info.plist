@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>Show Handle Length Percentages</string>
+	<string>Show Kink Helper</string>
 	<key>CFBundleExecutable</key>
 	<string>plugin</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.harbortype.showHandleLengthPercentages</string>
+	<string>com.harbortype.showKinkHelper</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Show Handle Length Percentages</string>
+	<string>Show Kink Helper</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleVersion</key>
@@ -29,7 +29,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Harbor Type, 2019</string>
 	<key>NSPrincipalClass</key>
-	<string>showHandleLengthPercentages</string>
+	<string>showKinkHelper</string>
 	<key>PyMainFileNames</key>
 	<array>
 		<string>../MacOS/main.py</string>

@@ -19,10 +19,10 @@ handleSize = 5 + Glyphs.handleSize * 2.5 # (= 5.0 or 7.5 or 10.0)
 masterIds = []
 
 
-class showHandleLengthPercentages(ReporterPlugin):
+class showKinkHelper(ReporterPlugin):
 
 	def settings(self):
-		self.menuName = Glyphs.localize({'en': u'Handle Length Percentages'})
+		self.menuName = Glyphs.localize({'en': u'Kink Helper'})
 
 
 	def getMasterIDs(self, layer):
