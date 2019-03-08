@@ -109,7 +109,7 @@ class showKinkHelper(ReporterPlugin):
 		currentLayer = Glyphs.font.selectedLayers[0]
 		currentGlyph = currentLayer.parent
 		# Check for compatibility against all masters and special layers
-		compatibility = []
+		angles = []
 		for layer in currentGlyph.layers:
 			if layer.layerId in masterIds:
 				# Find the current base node and the coordinates of its surrounding nodes
@@ -117,15 +117,12 @@ class showKinkHelper(ReporterPlugin):
 				pos1 = currentNode.prevNode.position
 				pos2 = currentNode.nextNode.position
 				# Calculate the angle between the surrounding nodes (we are assuming the base node is smooth)
-				angle = self.getAngle( pos1, pos2 )
-				# Check if the angles are compatible
-				roundError = 0.5
-				if angle >= originalAngle - roundError and angle <= originalAngle + roundError:
-					compatibility.append( True )
-				else:
-					compatibility.append( False )
-		# If there are incompatible angles, return False
-		if False in compatibility:
+				angles.append ( self.getAngle( pos1, pos2 ) )
+		# Check if the angles are compatible
+		minAngle = min(angles)
+		maxAngle = max(angles)
+		maxDiff = 1.0
+		if maxAngle - minAngle > maxDiff:
 			return False
 		return True
 
