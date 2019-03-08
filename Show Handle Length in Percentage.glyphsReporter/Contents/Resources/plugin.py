@@ -25,6 +25,7 @@ class showKinkHelper(ReporterPlugin):
 
 
 	def getHandleSize(self):
+		""" Get the handle size in scale """
 		handleSizes = (5, 8, 12)
 		handleSizeIndex = Glyphs.handleSize 
 		handleSize = handleSizes[handleSizeIndex]*self.getScale()**0.1 # scaled diameter
@@ -52,57 +53,6 @@ class showKinkHelper(ReporterPlugin):
 		angle = round( angle % 90, 1 )
 		return angle
 
-
-	def drawRoundedRectangleForStringAtPosition(self, string, center, fontsize, isAngle=False, compatible=False ):
-		""" Adapted from Stem Thickness by Rafał Buchner """
-		global masterIds
-		layer = Glyphs.font.selectedLayers[0]
-		scale = self.getScale()
-		handleSize = self.getHandleSize()
-		
-		scaledSize = fontsize / scale
-		width = len(string) * scaledSize
-		margin = 2
-		currentTab = Glyphs.font.currentTab
-		origin = currentTab.selectedLayerOrigin
-		center = NSPoint( center.x * scale + origin[0] , center.y * scale + origin[1] )
-		x, y = center
-
-		# Set colors
-		textColor = NSColor.colorWithCalibratedRed_green_blue_alpha_( 0,0,0,.75 )
-		if not layer.parent.mastersCompatible or layer.layerId not in masterIds:
-			# If masters are not compatible, or if it is not a special layer
-			NSColor.colorWithCalibratedRed_green_blue_alpha_( .7,.7,.7,.5 ).set() # medium gray
-		elif compatible == True:
-			# If angle or proportion is the same
-			NSColor.colorWithCalibratedRed_green_blue_alpha_( .9,.9,.9,.5 ).set() # light gray
-		else:
-			# If angle or proportion is NOT the same
-			NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.9,.4,.7 ).set() # yellow
-
-		# Configure text label
-		string = NSString.stringWithString_(string)
-		attributes = NSString.drawTextAttributes_( textColor )
-		textSize = string.sizeWithAttributes_(attributes)
-		
-		# Draw rounded rectangle
-		panel = NSRect()
-		panel.size = NSSize( math.floor(textSize.width) + margin*2*1.5, textSize.height + margin*1.5 )
-		if isAngle == True:
-			panel.origin = NSPoint( 
-				x-math.floor(textSize.width)/2-margin*1.5, 
-				y-textSize.height/2-margin + textSize.height/2 + handleSize+4 )
-		else:
-			panel.origin = NSPoint( 
-				x-math.floor(textSize.width)/2-margin*1.5, 
-				y-textSize.height/2-margin )
-		NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_( panel, scaledSize*0.5, scaledSize*0.5 ).fill()
-		
-		# Draw text label
-		if isAngle == True:
-			center = NSPoint( x, y + textSize.height/2 + handleSize+4 )
-		self.drawTextAtPoint( string, center, fontsize, align="center", fontColor=textColor )
-		
 
 	def compatibleAngles(self, p, n, originalAngle):
 		global masterIds
@@ -160,6 +110,57 @@ class showKinkHelper(ReporterPlugin):
 			return False
 		return True
 
+
+	def drawRoundedRectangleForStringAtPosition(self, string, center, fontsize, isAngle=False, compatible=False ):
+		""" Adapted from Stem Thickness by Rafał Buchner """
+		global masterIds
+		layer = Glyphs.font.selectedLayers[0]
+		scale = self.getScale()
+		handleSize = self.getHandleSize()
+		
+		scaledSize = fontsize / scale
+		width = len(string) * scaledSize
+		margin = 2
+		currentTab = Glyphs.font.currentTab
+		origin = currentTab.selectedLayerOrigin
+		center = NSPoint( center.x * scale + origin[0] , center.y * scale + origin[1] )
+		x, y = center
+
+		# Set colors
+		textColor = NSColor.colorWithCalibratedRed_green_blue_alpha_( 0,0,0,.75 )
+		if not layer.parent.mastersCompatible or layer.layerId not in masterIds:
+			# If masters are not compatible, or if it is not a special layer
+			NSColor.colorWithCalibratedRed_green_blue_alpha_( .7,.7,.7,.5 ).set() # medium gray
+		elif compatible == True:
+			# If angle or proportion is the same
+			NSColor.colorWithCalibratedRed_green_blue_alpha_( .9,.9,.9,.5 ).set() # light gray
+		else:
+			# If angle or proportion is NOT the same
+			NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.9,.4,.7 ).set() # yellow
+
+		# Configure text label
+		string = NSString.stringWithString_(string)
+		attributes = NSString.drawTextAttributes_( textColor )
+		textSize = string.sizeWithAttributes_(attributes)
+		
+		# Draw rounded rectangle
+		panel = NSRect()
+		panel.size = NSSize( math.floor(textSize.width) + margin*2*1.5, textSize.height + margin*1.5 )
+		if isAngle == True:
+			panel.origin = NSPoint( 
+				x-math.floor(textSize.width)/2-margin*1.5, 
+				y-textSize.height/2-margin + textSize.height/2 + handleSize+4 )
+		else:
+			panel.origin = NSPoint( 
+				x-math.floor(textSize.width)/2-margin*1.5, 
+				y-textSize.height/2-margin )
+		NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_( panel, scaledSize*0.5, scaledSize*0.5 ).fill()
+		
+		# Draw text label
+		if isAngle == True:
+			center = NSPoint( x, y + textSize.height/2 + handleSize+4 )
+		self.drawTextAtPoint( string, center, fontsize, align="center", fontColor=textColor )
+		
 
 	def foregroundInViewCoords(self, layer):
 		""" Draw stuff on the screen """
@@ -242,7 +243,7 @@ class showKinkHelper(ReporterPlugin):
 							center = NSPoint( node.position.x * scale + origin[0] , node.position.y * scale + origin[1] )
 							x, y = center
 							
-							# Draw rounded rectangle
+							# Draw circle behind the node
 							panel = NSRect()
 							panel.size = NSSize( width + margin*2 , width + margin*2 )
 							panel.origin = NSPoint( x - width/2 - margin, y - width/2 - margin )
