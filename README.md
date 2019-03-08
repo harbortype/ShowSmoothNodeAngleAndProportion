@@ -1,6 +1,6 @@
 # Show Smooth Node Angle and Proportion
 
-/images/preview.png
+![](/images/preview.png)
 
 This is a plugin for the [Glyphs font editor](https://glyphsapp.com/).  
 
@@ -10,7 +10,7 @@ This reporter plugin will highlight the nodes that may produce kinks in yellow. 
 
 The labels will have different colors depending on what’s happening on the other masters:
 
-/images/colors.png
+![](/images/colors.png)
 
 I baked a small tolerance of 1° for the angles and 1% for the proportions into the code, as it is very difficult to exactly match angles and handle lengths on a grid. If you believe these values do not produce a satisfactory result, please let me know.
 
