@@ -211,44 +211,45 @@ class showKinkHelper(ReporterPlugin):
 		masterIds = self.getMasterIDs(layer)
 		scale = self.getScale()
 		handleSize = self.getHandleSize()
-		if layer.paths and layer.layerId in masterIds:
-			for p, path in enumerate( layer.paths ):
-				for n, node in enumerate( path.nodes ):
-					if node.smooth:
-						hypotenuses = []
-						offcurveNodes = [ node.prevNode, node.nextNode ]
-						
-						# Calculate the hypotenuses
-						for i, offcurve in enumerate( offcurveNodes ):
-							pos1 = node.position
-							pos2 = offcurve.position
-							hypotenuses.append( math.hypot( pos1.x - pos2.x , pos1.y - pos2.y ) )
-						
-						# Calculate the percentages
-						factor = 100 / ( hypotenuses[0] + hypotenuses[1] )
-						compatibleProportions = self.compatibleProportions( p, n, hypotenuses )
+		if len(masterIds) > 1:
+			if layer.paths and layer.layerId in masterIds:
+				for p, path in enumerate( layer.paths ):
+					for n, node in enumerate( path.nodes ):
+						if node.smooth:
+							hypotenuses = []
+							offcurveNodes = [ node.prevNode, node.nextNode ]
 							
-						# Get the angle
-						pos1 = node.prevNode.position
-						pos2 = node.nextNode.position
-						angle = self.getAngle( pos1, pos2 )
-						compatibleAngles = self.compatibleAngles( p, n, angle )
-						
-						if not compatibleAngles and not compatibleProportions:
-							# scaledSize = fontsize / scale
-							width = handleSize*2
-							margin = 0
-							currentTab = Glyphs.font.currentTab
-							origin = currentTab.selectedLayerOrigin
-							center = NSPoint( node.position.x * scale + origin[0] , node.position.y * scale + origin[1] )
-							x, y = center
+							# Calculate the hypotenuses
+							for i, offcurve in enumerate( offcurveNodes ):
+								pos1 = node.position
+								pos2 = offcurve.position
+								hypotenuses.append( math.hypot( pos1.x - pos2.x , pos1.y - pos2.y ) )
 							
-							# Draw circle behind the node
-							panel = NSRect()
-							panel.size = NSSize( width + margin*2 , width + margin*2 )
-							panel.origin = NSPoint( x - width/2 - margin, y - width/2 - margin )
-							NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.9,.4,.7 ).set() # yellow
-							NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_( panel, (width+margin*2)*0.5, (width+margin*2)*0.5 ).fill()
+							# Calculate the percentages
+							factor = 100 / ( hypotenuses[0] + hypotenuses[1] )
+							compatibleProportions = self.compatibleProportions( p, n, hypotenuses )
+								
+							# Get the angle
+							pos1 = node.prevNode.position
+							pos2 = node.nextNode.position
+							angle = self.getAngle( pos1, pos2 )
+							compatibleAngles = self.compatibleAngles( p, n, angle )
+							
+							if not compatibleAngles and not compatibleProportions:
+								# scaledSize = fontsize / scale
+								width = handleSize*2
+								margin = 0
+								currentTab = Glyphs.font.currentTab
+								origin = currentTab.selectedLayerOrigin
+								center = NSPoint( node.position.x * scale + origin[0] , node.position.y * scale + origin[1] )
+								x, y = center
+								
+								# Draw circle behind the node
+								panel = NSRect()
+								panel.size = NSSize( width + margin*2 , width + margin*2 )
+								panel.origin = NSPoint( x - width/2 - margin, y - width/2 - margin )
+								NSColor.colorWithCalibratedRed_green_blue_alpha_( 1,.9,.4,.7 ).set() # yellow
+								NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_( panel, (width+margin*2)*0.5, (width+margin*2)*0.5 ).fill()
 
 
 
