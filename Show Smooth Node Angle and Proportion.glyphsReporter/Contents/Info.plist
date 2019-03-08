@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>Show Kink Helper</string>
+	<string>Show Smooth Node Angle and Proportion</string>
 	<key>CFBundleExecutable</key>
 	<string>plugin</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.harbortype.showKinkHelper</string>
+	<string>com.harbortype.showSmoothNodeAngleAndProportion</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Show Kink Helper</string>
+	<string>Show Smooth Node Angle and Proportion</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleVersion</key>
@@ -29,7 +29,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Harbor Type, 2019</string>
 	<key>NSPrincipalClass</key>
-	<string>showKinkHelper</string>
+	<string>showSmoothNodeAngleAndProportion</string>
 	<key>PyMainFileNames</key>
 	<array>
 		<string>../MacOS/main.py</string>

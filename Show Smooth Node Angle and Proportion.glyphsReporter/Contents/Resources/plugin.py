@@ -18,10 +18,10 @@ from GlyphsApp.plugins import *
 masterIds = []
 
 
-class showKinkHelper(ReporterPlugin):
+class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 	def settings(self):
-		self.menuName = Glyphs.localize({'en': u'Kink Helper'})
+		self.menuName = u'Smooth Node Angle and Proportion'
 
 
 	def getHandleSize(self):
@@ -128,7 +128,7 @@ class showKinkHelper(ReporterPlugin):
 
 		# Set colors
 		textColor = NSColor.colorWithCalibratedRed_green_blue_alpha_( 0,0,0,.75 )
-		if not layer.parent.mastersCompatible or layer.layerId not in masterIds:
+		if not layer.parent.mastersCompatible or layer.layerId not in masterIds or len(masterIds) == 1:
 			# If masters are not compatible, or if it is not a special layer
 			NSColor.colorWithCalibratedRed_green_blue_alpha_( .7,.7,.7,.5 ).set() # medium gray
 		elif compatible == True:
