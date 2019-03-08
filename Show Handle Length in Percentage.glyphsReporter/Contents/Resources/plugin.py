@@ -201,8 +201,10 @@ class showKinkHelper(ReporterPlugin):
 							angle = self.getAngle( pos1, pos2 )
 							
 							compatibleAngles = self.compatibleAngles( p, n, angle )
-							labelPosition = NSPoint( node.position.x , node.position.y )
-							self.drawRoundedRectangleForStringAtPosition( u"%s°" % str(angle), labelPosition, 8 * scale, isAngle=True, compatible=compatibleAngles )
+							# Draw the angle if it different than 0.0 or if it is not compatible
+							if angle != 0.0 or not compatibleAngles:
+								labelPosition = NSPoint( node.position.x , node.position.y )
+								self.drawRoundedRectangleForStringAtPosition( u"%s°" % str(angle), labelPosition, 8 * scale, isAngle=True, compatible=compatibleAngles )
 
 
 	def backgroundInViewCoords(self, layer):
