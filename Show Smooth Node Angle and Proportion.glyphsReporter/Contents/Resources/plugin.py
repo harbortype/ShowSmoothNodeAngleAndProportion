@@ -211,7 +211,9 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					for n, node in enumerate( path.nodes ):
 						if node.smooth:
 							hypotenuses = []
-							offcurveNodes = [ node.prevNode, node.nextNode ]
+							prevNode = node.prevNode
+							nextNode = node.nextNode
+							offcurveNodes = [ prevNode, nextNode ]
 							
 							# Calculate the hypotenuses
 							for i, offcurve in enumerate( offcurveNodes ):
@@ -224,8 +226,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 							compatibleProportions = self.compatibleProportions( p, n, hypotenuses )
 								
 							# Get the angle
-							pos1 = node.prevNode.position
-							pos2 = node.nextNode.position
+							pos1 = prevNode.position
+							pos2 = nextNode.position
 							angle = self.getAngle( pos1, pos2 )
 							compatibleAngles = self.compatibleAngles( p, n, angle )
 							
