@@ -158,42 +158,59 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		
 		scale = self.getScale()
 		glyph = layer.parent
-		if layer.paths and len(layer.selection) == 1:
-			for p, path in enumerate( layer.paths ):
-				for n, node in enumerate( path.nodes ):
-					if node.smooth:
-						if node.selected or node.nextNode.selected or node.prevNode.selected:
-							hypotenuses = []
-							offcurveNodes = [ node.prevNode, node.nextNode ]
-							
-							# Calculate the hypotenuses
-							for i, offcurve in enumerate( offcurveNodes ):
-								pos1 = node.position
-								pos2 = offcurve.position
-								hypotenuses.append( math.hypot( pos1.x - pos2.x , pos1.y - pos2.y ) )
-							
-							# Calculate the percentages
-							factor = 100 / ( hypotenuses[0] + hypotenuses[1] )
-							compatibleProportions = self.compatibleProportions( p, n, hypotenuses, glyph )
-							# Draw the percentages
-							for i, offcurve in enumerate( offcurveNodes ):
-								percent = round( hypotenuses[i] * factor, 1 )
-								pos1 = node.position
-								pos2 = offcurve.position
-								labelPosition = NSPoint( pos1.x + ( pos2.x - pos1.x ) / 2 , pos1.y + ( pos2.y - pos1.y ) / 2 )
-								if offcurve.selected or node.selected:
-									self.drawRoundedRectangleForStringAtPosition( u"%s%%" % str(percent), labelPosition, 8 * scale, compatible=compatibleProportions )
+		if len(layer.selection) == 1:
+			selectedNode = layer.selection[0]
+			if not isinstance(selectedNode, GSNode):
+				return
+			nextNode = selectedNode.nextNode
+			prevNode = selectedNode.prevNode
+			if selectedNode.type is OFFCURVE: # finding the next oncurve node
+				if nextNode.type != OFFCURVE:
+					node = nextNode
+					prevNode = selectedNode
+					nextNode = node.nextNode
+				else:
+					node = prevNode
+					nextNode = selectedNode
+					prevNode = node.prevNode
+			else:
+				node = selectedNode
+			
+			if node.smooth:
+				path = node.parent
+				p = layer.indexOfPath_(path)
+				n = node.index
+				hypotenuses = []
+				offcurveNodes = [ node.prevNode, node.nextNode ]
+				
+				# Calculate the hypotenuses
+				for i, offcurve in enumerate( offcurveNodes ):
+					pos1 = node.position
+					pos2 = offcurve.position
+					hypotenuses.append( math.hypot( pos1.x - pos2.x , pos1.y - pos2.y ) )
+				
+				# Calculate the percentages
+				factor = 100 / ( hypotenuses[0] + hypotenuses[1] )
+				compatibleProportions = self.compatibleProportions( p, n, hypotenuses, glyph )
+				# Draw the percentages
+				for i, offcurve in enumerate( offcurveNodes ):
+					percent = round( hypotenuses[i] * factor, 1 )
+					pos1 = node.position
+					pos2 = offcurve.position
+					labelPosition = NSPoint( pos1.x + ( pos2.x - pos1.x ) / 2 , pos1.y + ( pos2.y - pos1.y ) / 2 )
+					if offcurve.selected or node.selected:
+						self.drawRoundedRectangleForStringAtPosition( u"%s%%" % str(percent), labelPosition, 8 * scale, compatible=compatibleProportions )
 
-							# Draw the angle
-							pos1 = node.prevNode.position
-							pos2 = node.nextNode.position
-							angle = self.getAngle( pos1, pos2 )
-							
-							compatibleAngles = self.compatibleAngles( p, n, angle, glyph )
-							# Draw the angle if it different than 0.0 or if it is not compatible
-							if angle != 0.0 or not compatibleAngles:
-								labelPosition = NSPoint( node.position.x , node.position.y )
-								self.drawRoundedRectangleForStringAtPosition( u"%s°" % str(angle), labelPosition, 8 * scale, isAngle=True, compatible=compatibleAngles )
+				# Draw the angle
+				pos1 = prevNode.position
+				pos2 = nextNode.position
+				angle = self.getAngle( pos1, pos2 )
+				
+				compatibleAngles = self.compatibleAngles( p, n, angle, glyph )
+				# Draw the angle if it different than 0.0 or if it is not compatible
+				if angle != 0.0 or not compatibleAngles:
+					labelPosition = NSPoint( node.position.x , node.position.y )
+					self.drawRoundedRectangleForStringAtPosition( u"%s°" % str(angle), labelPosition, 8 * scale, isAngle=True, compatible=compatibleAngles )
 
 
 	def backgroundInViewCoords(self, layer):
@@ -212,7 +229,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		
 		for p, path in enumerate( layer.paths ):
 			for n, node in enumerate( path.nodes ):
-				if node.smooth:
+				if node.smooth and node.type is not OFFCURVE:
 					hypotenuses = []
 					prevNode = node.prevNode
 					nextNode = node.nextNode
