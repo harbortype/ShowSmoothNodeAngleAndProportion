@@ -52,13 +52,11 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return angle
 
 
-	def compatibleAngles(self, p, n, originalAngle):
-		currentLayer = Glyphs.font.selectedLayers[0]
-		currentGlyph = currentLayer.parent
+	def compatibleAngles(self, p, n, originalAngle, glyph):
 		# Check for compatibility against all masters and special layers
 		angles = []
 		for masterId in self.masterIds:
-			layer = currentGlyph.layers[masterId]
+			layer = glyph.layers[masterId]
 			# Find the current base node and the coordinates of its surrounding nodes
 			currentNode = layer.paths[p].nodes[n]
 			pos1 = currentNode.prevNode.position
@@ -74,13 +72,11 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return True
 
 
-	def compatibleProportions(self, p, n, originalHypot):
-		currentLayer = Glyphs.font.selectedLayers[0]
-		currentGlyph = currentLayer.parent
+	def compatibleProportions(self, p, n, originalHypot, glyph):
 		# Check for compatibility against all masters and special layers
 		compatibility = []
 		for masterId in self.masterIds:
-			layer = currentGlyph.layers[masterId]
+			layer = glyph.layers[masterId]
 			# Find the current base node and its surrounding nodes
 			currentNode = layer.paths[p].nodes[n]
 			offcurveNodes = [ currentNode.prevNode, currentNode.nextNode ]
@@ -161,6 +157,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		""" Draw stuff on the screen """
 		
 		scale = self.getScale()
+		glyph = layer.parent
 		if layer.paths and len(layer.selection) == 1:
 			for p, path in enumerate( layer.paths ):
 				for n, node in enumerate( path.nodes ):
@@ -177,7 +174,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 							
 							# Calculate the percentages
 							factor = 100 / ( hypotenuses[0] + hypotenuses[1] )
-							compatibleProportions = self.compatibleProportions( p, n, hypotenuses )
+							compatibleProportions = self.compatibleProportions( p, n, hypotenuses, glyph )
 							# Draw the percentages
 							for i, offcurve in enumerate( offcurveNodes ):
 								percent = round( hypotenuses[i] * factor, 1 )
@@ -192,7 +189,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 							pos2 = node.nextNode.position
 							angle = self.getAngle( pos1, pos2 )
 							
-							compatibleAngles = self.compatibleAngles( p, n, angle )
+							compatibleAngles = self.compatibleAngles( p, n, angle, glyph )
 							# Draw the angle if it different than 0.0 or if it is not compatible
 							if angle != 0.0 or not compatibleAngles:
 								labelPosition = NSPoint( node.position.x , node.position.y )
@@ -205,6 +202,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		self.masterIds = self.getMasterIDs(layer)
 		scale = self.getScale()
 		handleSize = self.getHandleSize()
+		glyph = layer.parent
 		if len(self.masterIds) > 1:
 			if layer.paths and layer.layerId in self.masterIds:
 				for p, path in enumerate( layer.paths ):
@@ -223,13 +221,13 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 							
 							# Calculate the percentages
 							factor = 100 / ( hypotenuses[0] + hypotenuses[1] )
-							compatibleProportions = self.compatibleProportions( p, n, hypotenuses )
-								
+							compatibleProportions = self.compatibleProportions( p, n, hypotenuses, glyph )
+							
 							# Get the angle
 							pos1 = prevNode.position
 							pos2 = nextNode.position
 							angle = self.getAngle( pos1, pos2 )
-							compatibleAngles = self.compatibleAngles( p, n, angle )
+							compatibleAngles = self.compatibleAngles( p, n, angle, glyph )
 							
 							if not compatibleAngles and not compatibleProportions:
 								# scaledSize = fontsize / scale
