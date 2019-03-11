@@ -27,3 +27,17 @@ I baked a small tolerance of 1° for the angles and 1% for the proportions into 
 ### Planned features
 
 - Add drawing aids to make the adjustment process easier (maybe showing the other master’s corresponding nodes in the background).
+
+### License
+
+Copyright 2019 [Henrique Beier](https://www.harbortype.com) @harbortype
+
+Made possible with the [GlyphsSDK](https://github.com/schriftgestalt/GlyphsSDK) by Georg Seifert (@schriftgestalt), Jan Gerner (@yanone) and Rainer Erich Scheichelbauer (@mekkablue). 
+
+Code samples from [Stem Thickness](https://github.com/RafalBuchner/StemThickness) by Rafał Buchner (@RafalBuchner) and [Show Crosshair](https://github.com/mekkablue/ShowCrosshair) by Rainer Erich Scheichelbauer (@mekkablue).
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+See the License file included in this repository for further details.
