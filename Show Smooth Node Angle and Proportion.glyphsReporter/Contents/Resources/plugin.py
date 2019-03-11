@@ -46,9 +46,9 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 	def getAngle(self, p1, p2):
 		""" Calculates the angle between two points """
-		dx, dy = p1.x - p2.x, p1.y - p2.y
+		dx, dy = p2.x - p1.x, p2.y - p1.y
 		angle = math.degrees(math.atan2(dy, dx))
-		angle = round(angle % 90, 1)
+		angle = round(angle % 180, 1)
 		return angle
 
 
@@ -211,7 +211,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				
 				compatibleAngles = self.compatibleAngles(p, n, angle, glyph)
 				# Draw the angle if it different than 0.0 or if it is not compatible
-				if angle != 0.0 or not compatibleAngles:
+				angleExceptions = [-90.0, 0.0, 90.0, 180.0]
+				if angle not in angleExceptions or not compatibleAngles:
 					labelPosition = NSPoint(node.position.x , node.position.y)
 					self.drawRoundedRectangleForStringAtPosition(u"%s°" % str(angle), labelPosition, 10 * scale, isAngle=True, compatible=compatibleAngles)
 
