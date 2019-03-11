@@ -201,8 +201,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					pos1 = node.position
 					pos2 = offcurve.position
 					labelPosition = NSPoint(pos1.x + (pos2.x - pos1.x) / 2 , pos1.y + (pos2.y - pos1.y) / 2)
-					if offcurve.selected or node.selected:
-						self.drawRoundedRectangleForStringAtPosition(u"%s%%" % str(percent), labelPosition, 10 * scale, compatible=compatibleProportions)
+					self.drawRoundedRectangleForStringAtPosition(u"%s%%" % str(percent), labelPosition, 10 * scale, compatible=compatibleProportions)
 
 				# Draw the angle
 				pos1 = prevNode.position
