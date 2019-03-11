@@ -39,7 +39,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		masterIds = set()
 		glyph = layer.parent
 		for lyr in glyph.layers:
-			if lyr.isSpecialLayer or lyr.isMasterLayer:
+			if lyr.isSpecialLayer or lyr.layerId == lyr.associatedMasterId:
 				masterIds.add(lyr.layerId)
 		return list(masterIds)
 
