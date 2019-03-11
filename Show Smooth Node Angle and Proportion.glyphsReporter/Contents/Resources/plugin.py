@@ -131,7 +131,10 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 		# Configure text label
 		string = NSString.stringWithString_(string)
-		attributes = NSString.drawTextAttributes_(textColor)
+		attributes = {
+			NSFontAttributeName:            NSFont.systemFontOfSize_(fontsize/scale),
+			NSForegroundColorAttributeName: textColor
+		}
 		textSize = string.sizeWithAttributes_(attributes)
 		
 		# Draw rounded rectangle
@@ -199,7 +202,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					pos2 = offcurve.position
 					labelPosition = NSPoint(pos1.x + (pos2.x - pos1.x) / 2 , pos1.y + (pos2.y - pos1.y) / 2)
 					if offcurve.selected or node.selected:
-						self.drawRoundedRectangleForStringAtPosition(u"%s%%" % str(percent), labelPosition, 8 * scale, compatible=compatibleProportions)
+						self.drawRoundedRectangleForStringAtPosition(u"%s%%" % str(percent), labelPosition, 10 * scale, compatible=compatibleProportions)
 
 				# Draw the angle
 				pos1 = prevNode.position
@@ -210,7 +213,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				# Draw the angle if it different than 0.0 or if it is not compatible
 				if angle != 0.0 or not compatibleAngles:
 					labelPosition = NSPoint(node.position.x , node.position.y)
-					self.drawRoundedRectangleForStringAtPosition(u"%s°" % str(angle), labelPosition, 8 * scale, isAngle=True, compatible=compatibleAngles)
+					self.drawRoundedRectangleForStringAtPosition(u"%s°" % str(angle), labelPosition, 10 * scale, isAngle=True, compatible=compatibleAngles)
 
 
 	def backgroundInViewCoords(self, layer):
