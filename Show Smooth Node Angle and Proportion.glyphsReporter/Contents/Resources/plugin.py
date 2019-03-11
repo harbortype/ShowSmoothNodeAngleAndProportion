@@ -11,7 +11,7 @@
 #
 ###########################################################################################################
 
-import objc, math
+import objc, math, traceback
 from GlyphsApp import *
 from GlyphsApp.plugins import *
 
@@ -22,7 +22,70 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 	def settings(self):
 		self.menuName = u'Smooth Node Angle and Proportion'
+		self.thisMenuTitle = {"name": u"%s:" % self.menuName, "action": None }
 		self.masterIds = []
+		NSUserDefaults.standardUserDefaults().registerDefaults_({
+				"com.harbortype.showSmoothNodeAngleAndProportion.showRatio": 0
+			})
+
+
+	def conditionalContextMenus(self):
+		return [
+		{
+			'name': Glyphs.localize({
+				'en': u"Show Smooth Node Angle and Proportion:",
+				}), 
+			'action': None,
+		},
+		{
+			'name': Glyphs.localize({
+				'en': u"Show Ratio Instead of Percentages", 
+				}), 
+			'action': self.toggleRatio,
+			'state': Glyphs.defaults[ "com.harbortype.showSmoothNodeAngleAndProportion.showRatio" ],
+		},
+		]
+
+	def addMenuItemsForEvent_toMenu_(self, event, contextMenu):
+		'''
+		The event can tell you where the user had clicked.
+		'''
+		try:
+			
+			if self.generalContextMenus:
+				setUpMenuHelper(contextMenu, self.generalContextMenus, self)
+			
+			newSeparator = NSMenuItem.separatorItem()
+			contextMenu.addItem_(newSeparator)
+			
+			contextMenus = self.conditionalContextMenus()
+			if contextMenus:
+				setUpMenuHelper(contextMenu, contextMenus, self)
+		
+		except:
+			NSLog(traceback.format_exc())
+
+
+	def toggleRatio(self):
+		self.toggleSetting("showRatio")
+
+
+	def toggleSetting(self, prefName):
+		pref = "com.harbortype.showSmoothNodeAngleAndProportion.%s" % prefName
+		oldSetting = bool(Glyphs.defaults[pref])
+		Glyphs.defaults[pref] = int(not oldSetting)
+		self.refreshView()
+
+
+	def refreshView(self):
+		try:
+			Glyphs = NSApplication.sharedApplication()
+			currentTabView = Glyphs.font.currentTab
+			if currentTabView:
+				currentTabView.graphicView().setNeedsDisplay_(True)
+		except:
+			pass
+
 
 
 	def getHandleSize(self):
@@ -35,7 +98,6 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 	def getMasterIDs(self, layer):
 		""" Get the masters and special layers IDs """
-
 		masterIds = set()
 		glyph = layer.parent
 		for lyr in glyph.layers:
@@ -48,11 +110,11 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		""" Calculates the angle between two points """
 		dx, dy = p2.x - p1.x, p2.y - p1.y
 		angle = math.degrees(math.atan2(dy, dx))
-		angle = round(angle % 180, 1)
+		angle = round(angle, 1)
 		return angle
 
 
-	def compatibleAngles(self, p, n, originalAngle, glyph):
+	def compatibleAngles(self, glyph, p, n):
 		# Check for compatibility against all masters and special layers
 		angles = []
 		for masterId in self.masterIds:
@@ -61,7 +123,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			currentNode = layer.paths[p].nodes[n]
 			pos1 = currentNode.prevNode.position
 			pos2 = currentNode.nextNode.position
-			# Calculate the angle between the surrounding nodes (we are assuming the base node is smooth)
+			# Calculate the angle between the surrounding nodes 
+			# (we are assuming the base node is smooth)
 			angles.append (self.getAngle(pos1, pos2))
 		# Check if the angles are compatible
 		minAngle = min(angles)
@@ -72,7 +135,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return True
 
 
-	def compatibleProportions(self, p, n, originalHypot, glyph):
+	def compatibleProportions(self, glyph, p, n, originalHypot):
 		# Check for compatibility against all masters and special layers
 		compatibility = []
 		for masterId in self.masterIds:
@@ -103,7 +166,17 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return True
 
 
-	def drawRoundedRectangleForStringAtPosition(self, string, center, fontsize, isAngle=False, compatible=False):
+	def getLabelPosition(self, nodePosition, angle, panelSize, offset=30, angleOffset=0.0):
+		""" Calculates the position of the label """
+		x, y = nodePosition
+		w, h = panelSize
+		normal = angle + angleOffset
+		dx = math.cos(math.radians(normal)) * offset
+		dy = math.sin(math.radians(normal)) * offset
+		return NSPoint(x+dx-w/2, y+dy-h/2)
+
+
+	def drawRoundedRectangleForStringAtPosition(self, string, center, fontsize, handleAngle, isAngle=False, compatible=False, angleOffset=0.0):
 		""" Adapted from Stem Thickness by Rafał Buchner """
 		layer = Glyphs.font.selectedLayers[0]
 		scale = self.getScale()
@@ -140,10 +213,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		# Draw rounded rectangle
 		panel = NSRect()
 		panel.size = NSSize(math.floor(textSize.width) + margin * 2 * 1.5, textSize.height + margin * 1.5)
-		if isAngle == True:
-			panel.origin = NSPoint(
-				x-math.floor(textSize.width) / 2 - margin * 1.5, 
-				y-textSize.height / 2 - margin + textSize.height / 2 + handleSize + 4)
+		if angleOffset != 0.0:
+			panel.origin = self.getLabelPosition(center, handleAngle, panel.size, angleOffset=angleOffset)
 		else:
 			panel.origin = NSPoint(
 				x-math.floor(textSize.width) / 2 - margin * 1.5, 
@@ -151,9 +222,10 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(panel, scaledSize * 0.5, scaledSize * 0.5).fill()
 		
 		# Draw text label
-		if isAngle == True:
-			center = NSPoint(x, y + textSize.height / 2 + handleSize + 4)
-		self.drawTextAtPoint(string, center, fontsize, align="center", fontColor=textColor)
+		panelCenter = NSPoint(
+			panel.origin.x + panel.size.width/2,
+			panel.origin.y + panel.size.height/2)
+		self.drawTextAtPoint(string, panelCenter, fontsize, align="center", fontColor=textColor)
 		
 
 	def foregroundInViewCoords(self, layer):
@@ -191,29 +263,36 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					pos1 = node.position
 					pos2 = offcurve.position
 					hypotenuses.append(math.hypot(pos1.x - pos2.x , pos1.y - pos2.y))
+				# Check if handles are compatible
+				compatibleProportions = self.compatibleProportions(glyph, p, n, hypotenuses)
 				
-				# Calculate the percentages
-				factor = 100 / (hypotenuses[0] + hypotenuses[1])
-				compatibleProportions = self.compatibleProportions(p, n, hypotenuses, glyph)
-				# Draw the percentages
-				for i, offcurve in enumerate(offcurveNodes):
-					percent = round(hypotenuses[i] * factor, 1)
-					pos1 = node.position
-					pos2 = offcurve.position
-					labelPosition = NSPoint(pos1.x + (pos2.x - pos1.x) / 2 , pos1.y + (pos2.y - pos1.y) / 2)
-					self.drawRoundedRectangleForStringAtPosition(u"%s%%" % str(percent), labelPosition, 10 * scale, compatible=compatibleProportions)
-
-				# Draw the angle
+				# Check if angles are compatible
 				pos1 = prevNode.position
 				pos2 = nextNode.position
 				angle = self.getAngle(pos1, pos2)
+				compatibleAngles = self.compatibleAngles(glyph, p, n)
+
+				# Calculate and draw the ratio
+				if Glyphs.boolDefaults["com.harbortype.showSmoothNodeAngleAndProportion.showRatio"]:
+					ratio = round(hypotenuses[0]/hypotenuses[1], 3)
+					labelPosition = NSPoint(node.position.x , node.position.y)
+					self.drawRoundedRectangleForStringAtPosition(u"%s" % format(ratio, '.3f'), labelPosition, 10 * scale, angle, compatible=compatibleProportions, angleOffset=270)
 				
-				compatibleAngles = self.compatibleAngles(p, n, angle, glyph)
+				# Or calculate and draw the percentages
+				else:
+					factor = 100 / (hypotenuses[0] + hypotenuses[1])
+					for i, offcurve in enumerate(offcurveNodes):
+						percent = round(hypotenuses[i] * factor, 1)
+						pos1 = node.position
+						pos2 = offcurve.position
+						labelPosition = NSPoint(pos1.x + (pos2.x - pos1.x) / 2 , pos1.y + (pos2.y - pos1.y) / 2)
+						self.drawRoundedRectangleForStringAtPosition(u"%s%%" % str(percent), labelPosition, 10 * scale, angle, compatible=compatibleProportions)
+
 				# Draw the angle if it different than 0.0 or if it is not compatible
 				angleExceptions = [-90.0, 0.0, 90.0, 180.0]
 				if angle not in angleExceptions or not compatibleAngles:
 					labelPosition = NSPoint(node.position.x , node.position.y)
-					self.drawRoundedRectangleForStringAtPosition(u"%s°" % str(angle), labelPosition, 10 * scale, isAngle=True, compatible=compatibleAngles)
+					self.drawRoundedRectangleForStringAtPosition(u"%s°" % str(angle % 180), labelPosition, 10 * scale, angle, isAngle=True, compatible=compatibleAngles, angleOffset=90)
 
 
 	def backgroundInViewCoords(self, layer):
@@ -246,13 +325,13 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					
 					# Calculate the percentages
 					factor = 100 / (hypotenuses[0] + hypotenuses[1])
-					compatibleProportions = self.compatibleProportions(p, n, hypotenuses, glyph)
+					compatibleProportions = self.compatibleProportions(glyph, p, n, hypotenuses)
 					
 					# Get the angle
 					pos1 = prevNode.position
 					pos2 = nextNode.position
 					angle = self.getAngle(pos1, pos2)
-					compatibleAngles = self.compatibleAngles(p, n, angle, glyph)
+					compatibleAngles = self.compatibleAngles(glyph, p, n)
 					
 					if not compatibleAngles and not compatibleProportions:
 						# scaledSize = fontsize / scale
