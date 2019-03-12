@@ -306,6 +306,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			return
 		if layer.layerId not in self.masterIds:
 			return
+		if not glyph.mastersCompatible:
+			return
 		if not layer.paths:
 			return
 		
