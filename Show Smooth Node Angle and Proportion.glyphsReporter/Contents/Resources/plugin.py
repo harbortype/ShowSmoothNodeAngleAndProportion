@@ -25,7 +25,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		self.thisMenuTitle = {"name": u"%s:" % self.menuName, "action": None }
 		self.masterIds = []
 		NSUserDefaults.standardUserDefaults().registerDefaults_({
-				"com.harbortype.showSmoothNodeAngleAndProportion.showRatio": 0
+				"com.harbortype.showSmoothNodeAngleAndProportion.showRatio": 0,
+				"com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters": 1,
 			})
 
 
@@ -36,6 +37,13 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				'en': u"Show Smooth Node Angle and Proportion:",
 				}), 
 			'action': None,
+		},
+		{
+			'name': Glyphs.localize({
+				'en': u"Show Angles of Other Masters", 
+				}), 
+			'action': self.toggleMasters,
+			'state': Glyphs.defaults[ "com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters" ],
 		},
 		{
 			'name': Glyphs.localize({
@@ -68,6 +76,10 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 	def toggleRatio(self):
 		self.toggleSetting("showRatio")
+
+
+	def toggleMasters(self):
+		self.toggleSetting("showOtherMasters")
 
 
 	def toggleSetting(self, prefName):
@@ -226,6 +238,43 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			panel.origin.x + panel.size.width/2,
 			panel.origin.y + panel.size.height/2)
 		self.drawTextAtPoint(string, panelCenter, fontsize, align="center", fontColor=textColor)
+
+
+	def drawBackgroundHandles(self, layer, p, n, scale):
+		radius = 2
+		glyph = layer.parent
+		currentLayer = layer.layerId
+		currentNode = layer.paths[p].nodes[n]
+		x = currentNode.position.x
+		y = currentNode.position.y
+		currentTab = Glyphs.font.currentTab
+		origin = currentTab.selectedLayerOrigin
+		basePosition = NSPoint( x * scale + origin[0], y * scale + origin[1] )
+		for masterLayer in self.masterIds:
+			# Don't draw the current layer
+			if masterLayer == currentLayer:
+				continue
+			# Get the nodes
+			baseNode = glyph.layers[masterLayer].paths[p].nodes[n]
+			nextNode = baseNode.nextNode
+			prevNode = baseNode.prevNode
+			for offcurve in [nextNode, prevNode]:
+				# Calculate the position delta to the base node
+				dx = offcurve.position.x - baseNode.position.x
+				dy = offcurve.position.y - baseNode.position.y
+				offcurvePosition = NSPoint( (x+dx) * scale + origin[0], (y+dy) * scale + origin[1] )
+				# Draw line
+				NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .65, .0, .4).set() # orange
+				line = NSBezierPath.bezierPath()
+				line.setLineWidth_(1)
+				line.moveToPoint_(basePosition)
+				line.lineToPoint_(offcurvePosition)
+				line.stroke()
+				# Draw nodes
+				# panel = NSRect()
+				# panel.size = NSSize(radius * 2 , radius * 2)
+				# panel.origin = NSPoint( (x+dx) * scale + origin[0] - radius, (y+dy) * scale + origin[1] - radius )
+				# NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(panel, radius, radius).stroke()
 		
 
 	def foregroundInViewCoords(self, layer):
@@ -318,6 +367,13 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					prevNode = node.prevNode
 					nextNode = node.nextNode
 					offcurveNodes = [prevNode, nextNode]
+
+					# Draw handles from other masters
+					if Glyphs.boolDefaults["com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters"]:
+						if len(layer.selection) == 1:
+							selectedNode = layer.selection[0]
+							if selectedNode in offcurveNodes or node == selectedNode:
+								self.drawBackgroundHandles(layer, p, n, scale)
 					
 					# Calculate the hypotenuses
 					for i, offcurve in enumerate(offcurveNodes):
