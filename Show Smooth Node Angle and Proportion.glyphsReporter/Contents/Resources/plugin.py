@@ -127,6 +127,9 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 
 	def compatibleAngles(self, glyph, p, n):
+		# Exit if masters not compatible
+		if not glyph.mastersCompatible:
+			return
 		# Check for compatibility against all masters and special layers
 		angles = []
 		for masterId in self.masterIds:
@@ -148,6 +151,9 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 
 	def compatibleProportions(self, glyph, p, n, originalHypot):
+		# Exit if masters not compatible
+		if not glyph.mastersCompatible:
+			return
 		# Check for compatibility against all masters and special layers
 		compatibility = []
 		for masterId in self.masterIds:
