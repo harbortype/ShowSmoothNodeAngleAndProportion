@@ -11,6 +11,7 @@
 #
 ###########################################################################################################
 
+from __future__ import division, print_function, unicode_literals
 import objc, math, traceback
 from GlyphsApp import *
 from GlyphsApp.plugins import *
@@ -70,7 +71,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			if contextMenus:
 				setUpMenuHelper(contextMenu, contextMenus, self)
 		
-		except:
+		except Exception as e:
 			NSLog(traceback.format_exc())
 
 
@@ -95,7 +96,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			currentTabView = Glyphs.font.currentTab
 			if currentTabView:
 				currentTabView.graphicView().setNeedsDisplay_(True)
-		except:
+		except Exception as e:
 			pass
 
 
