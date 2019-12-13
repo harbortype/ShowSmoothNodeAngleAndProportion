@@ -22,7 +22,11 @@ from GlyphsApp.plugins import *
 class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 	def settings(self):
-		self.menuName = u'Smooth Node Angle and Proportion'
+		self.menuName = Glyphs.localize({
+			'en': u'Smooth Node Angle and Proportion',
+			'pt': u'Ângulo e Proporção dos Nós',
+
+		})
 		self.thisMenuTitle = {"name": u"%s:" % self.menuName, "action": None }
 		self.masterIds = []
 		NSUserDefaults.standardUserDefaults().registerDefaults_({
@@ -36,19 +40,22 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		{
 			'name': Glyphs.localize({
 				'en': u"Show Smooth Node Angle and Proportion:",
+				'pt': u"Exibir Ângulo e Proporção dos Nós:",
 				}), 
 			'action': None,
 		},
 		{
 			'name': Glyphs.localize({
-				'en': u"Show Angles of Other Masters", 
+				'en': u"Show angles of other masters", 
+				'pt': u"Exibir ângulos das outras masters", 
 				}), 
 			'action': self.toggleMasters,
 			'state': Glyphs.defaults[ "com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters" ],
 		},
 		{
 			'name': Glyphs.localize({
-				'en': u"Show Ratio Instead of Percentages", 
+				'en': u"Show ratio instead of percentages", 
+				'pt': u"Exibir razão ao invés de porcentagens", 
 				}), 
 			'action': self.toggleRatio,
 			'state': Glyphs.defaults[ "com.harbortype.showSmoothNodeAngleAndProportion.showRatio" ],
