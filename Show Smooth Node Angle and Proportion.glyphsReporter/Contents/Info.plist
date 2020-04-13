@@ -3,9 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
-	<key>CFBundleDisplayName</key>
-	<string>Show Smooth Node Angle and Proportion</string>
+	<string>en</string>
 	<key>CFBundleExecutable</key>
 	<string>plugin</string>
 	<key>CFBundleIdentifier</key>
@@ -14,25 +12,23 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>Show Smooth Node Angle and Proportion</string>
-	<key>CFBundlePackageType</key>
-	<string>BNDL</string>
-	<key>CFBundleVersion</key>
-	<string>3</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.1</string>
+	<string>1.2</string>
+	<key>CFBundleVersion</key>
+	<string>4</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/harbortype/ShowSmoothNodeAngleAndProportion/master/Show%20Smooth%20Node%20Angle%20and%20Proportion.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/harbortype/ShowSmoothNodeAngleAndProportion</string>
 	<key>productReleaseNotes</key>
-	<string>Introduced sanity checks for incompatible glyphs, prevents error messages in Macro Window.</string>
+	<string>Glyphs 3 compatibility.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Harbor Type, 2019</string>
 	<key>NSPrincipalClass</key>
 	<string>showSmoothNodeAngleAndProportion</string>
 	<key>PyMainFileNames</key>
 	<array>
-		<string>../MacOS/main.py</string>
+		<string>plugin.py</string>
 	</array>
 </dict>
 </plist>
