@@ -366,7 +366,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					if Glyphs.boolDefaults["com.harbortype.showSmoothNodeAngleAndProportion.showRatio"]:
 						ratio = round(hypotenuses[0]/hypotenuses[1], 3)
 						labelPosition = NSPoint(node.position.x , node.position.y)
-						self.drawRoundedRectangleForStringAtPosition(u"%s" % format(ratio, '.3f'), labelPosition, 10 * scale, angle, compatible=compatibleProportions, angleOffset=270)
+						self.drawRoundedRectangleForStringAtPosition(u"%.2f" % ratio, labelPosition, 10 * scale, angle, compatible=compatibleProportions, angleOffset=270)
 				
 					# Or calculate and draw the percentages
 					else:
@@ -382,7 +382,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					angleExceptions = [-90.0, 0.0, 90.0, 180.0]
 					if angle not in angleExceptions or not compatibleAngles:
 						labelPosition = NSPoint(node.position.x , node.position.y)
-						self.drawRoundedRectangleForStringAtPosition(u"%s°" % str(angle % 180), labelPosition, 10 * scale, angle, isAngle=True, compatible=compatibleAngles, angleOffset=90)
+						self.drawRoundedRectangleForStringAtPosition(u"%.1f°" % (angle % 180), labelPosition, 10 * scale, angle, isAngle=True, compatible=compatibleAngles, angleOffset=90)
 
 
 	@objc.python_method 
