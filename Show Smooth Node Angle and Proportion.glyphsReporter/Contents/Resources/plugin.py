@@ -49,7 +49,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				'en': u"Show angles of other masters", 
 				'pt': u"Exibir ângulos das outras masters", 
 				}), 
-			'action': self.toggleMasters,
+			'action': self.toggleMasters_,
 			'state': Glyphs.defaults[ "com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters" ],
 		},
 		{
@@ -57,7 +57,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				'en': u"Show ratio instead of percentages", 
 				'pt': u"Exibir razão ao invés de porcentagens", 
 				}), 
-			'action': self.toggleRatio,
+			'action': self.toggleRatio_,
 			'state': Glyphs.defaults[ "com.harbortype.showSmoothNodeAngleAndProportion.showRatio" ],
 		},
 		]
@@ -83,13 +83,11 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			NSLog(traceback.format_exc())
 
 
-	@objc.python_method 
-	def toggleRatio(self):
+	def toggleRatio_(self, sender):
 		self.toggleSetting("showRatio")
 
 
-	@objc.python_method 
-	def toggleMasters(self):
+	def toggleMasters_(self, sender):
 		self.toggleSetting("showOtherMasters")
 
 
