@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
+	<string>en</string>
 	<key>CFBundleExecutable</key>
 	<string>plugin</string>
 	<key>CFBundleIdentifier</key>
@@ -12,10 +12,10 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>Show Smooth Node Angle and Proportion</string>
-	<key>CFBundleVersion</key>
-	<string>5</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.3</string>
+	<key>CFBundleVersion</key>
+	<string>6</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/harbortype/ShowSmoothNodeAngleAndProportion/master/Show%20Smooth%20Node%20Angle%20and%20Proportion.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
