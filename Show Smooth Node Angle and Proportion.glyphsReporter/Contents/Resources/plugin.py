@@ -19,7 +19,7 @@ from GlyphsApp.plugins import *
 
 class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
-	@objc.python_method 
+	@objc.python_method
 	def settings(self):
 		self.menuName = Glyphs.localize({
 			'en': u'Smooth Node Angle and Proportion',
@@ -34,7 +34,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			})
 
 
-	@objc.python_method 
+	@objc.python_method
 	def conditionalContextMenus(self):
 		return [
 		{
@@ -62,7 +62,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		},
 		]
 
-	@objc.python_method 
+	@objc.python_method
 	def addMenuItemsForEvent_toMenu_(self, event, contextMenu):
 		'''
 		The event can tell you where the user had clicked.
@@ -91,7 +91,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		self.toggleSetting("showOtherMasters")
 
 
-	@objc.python_method 
+	@objc.python_method
 	def toggleSetting(self, prefName):
 		pref = "com.harbortype.showSmoothNodeAngleAndProportion.%s" % prefName
 		oldSetting = bool(Glyphs.defaults[pref])
@@ -99,7 +99,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		self.refreshView()
 
 
-	@objc.python_method 
+	@objc.python_method
 	def refreshView(self):
 		try:
 			Glyphs = NSApplication.sharedApplication()
@@ -111,7 +111,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 
 
-	@objc.python_method 
+	@objc.python_method
 	def getHandleSize(self):
 		""" Get the handle size in scale """
 		handleSizes = (5, 8, 12)
@@ -120,7 +120,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return handleSize
 
 
-	@objc.python_method 
+	@objc.python_method
 	def getMasterIDs(self, layer):
 		""" Get the masters and special layers IDs """
 		masterIds = set()
@@ -131,7 +131,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return list(masterIds)
 
 
-	@objc.python_method 
+	@objc.python_method
 	def getAngle(self, p1, p2):
 		""" Calculates the angle between two points """
 		dx, dy = p2.x - p1.x, p2.y - p1.y
@@ -140,7 +140,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return angle
 
 
-	@objc.python_method 
+	@objc.python_method
 	def compatibleAngles(self, glyph, p, n):
 		# Exit if masters not compatible
 		if not glyph.mastersCompatible:
@@ -168,7 +168,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return True
 
 
-	@objc.python_method 
+	@objc.python_method
 	def compatibleProportions(self, glyph, p, n, originalHypot):
 		# Exit if masters not compatible
 		if not glyph.mastersCompatible:
@@ -209,7 +209,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return True
 
 
-	@objc.python_method 
+	@objc.python_method
 	def getLabelPosition(self, nodePosition, angle, panelSize, offset=30, angleOffset=0.0):
 		""" Calculates the position of the label """
 		x, y = nodePosition
@@ -220,7 +220,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return NSPoint(x+dx-w/2, y+dy-h/2)
 
 
-	@objc.python_method 
+	@objc.python_method
 	def drawRoundedRectangleForStringAtPosition(self, string, center, fontsize, handleAngle, isAngle=False, compatible=False, angleOffset=0.0):
 		""" Adapted from Stem Thickness by Rafał Buchner """
 		layer = Glyphs.font.selectedLayers[0]
@@ -273,7 +273,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		self.drawTextAtPoint(string, panelCenter, fontsize, align="center", fontColor=textColor)
 
 
-	@objc.python_method 
+	@objc.python_method
 	def drawBackgroundHandles(self, layer, p, n, scale):
 		radius = 2
 		glyph = layer.parent
@@ -311,7 +311,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				# NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(panel, radius, radius).stroke()
 		
 
-	@objc.python_method 
+	@objc.python_method
 	def foregroundInViewCoords(self, layer=None): 
 		""" Draw stuff on the screen """
 		layer = self.activeLayer()
@@ -383,7 +383,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 						self.drawRoundedRectangleForStringAtPosition(u"%.1f°" % (angle % 180), labelPosition, 10 * scale, angle, isAngle=True, compatible=compatibleAngles, angleOffset=90)
 
 
-	@objc.python_method 
+	@objc.python_method
 	def backgroundInViewCoords(self, layer=None):
 		""" Mark the nodes that may produce kinks """
 
@@ -450,7 +450,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 
 
-	@objc.python_method 
+	@objc.python_method
 	def __file__(self):
 		"""Please leave this method unchanged"""
 		return __file__
