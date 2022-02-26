@@ -239,7 +239,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		textColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .75)
 		if not layer.parent.mastersCompatible or layer.layerId not in self.masterIds or len(self.masterIds) == 1:
 			# If masters are not compatible, or if it is not a special layer
-			NSColor.colorWithCalibratedRed_green_blue_alpha_(.7, .7, .7, .5).set() # medium gray
+			NSColor.colorWithCalibratedRed_green_blue_alpha_(.85, .7, .7, .5).set() # reddish gray
 		elif compatible == True:
 			# If angle or proportion is the same
 			NSColor.colorWithCalibratedRed_green_blue_alpha_(.9, .9, .9, .5).set() # light gray
