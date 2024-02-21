@@ -130,7 +130,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return angle
 
 	@objc.python_method
-	def compatibleAngles(self, glyph, p, n):
+	def compatibleAngles(self, glyph, pathIndex, nodeIndex):
 		# Exit if masters not compatible
 		if not glyph.mastersCompatible:
 			return
@@ -139,13 +139,13 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		for masterId in self.masterIds:
 			layer = glyph.layers[masterId]
 			# Find the current base node and the coordinates of its surrounding nodes
-			currentPath = layer.paths[p]
+			currentPath = layer.paths[pathIndex]
 			if currentPath:
-				currentNode = currentPath.nodes[n]
+				currentNode = currentPath.nodes[nodeIndex]
 				if currentNode:
-					pos1 = currentNode.prevNode.position
-					pos2 = currentNode.nextNode.position
-					# Calculate the angle between the surrounding nodes 
+					pos1 = currentPath.nodes[nodeIndex - 1].position
+					pos2 = currentPath.nodes[nodeIndex + 1].position
+					# Calculate the angle between the surrounding nodes
 					# (we are assuming the base node is smooth)
 					angles.append(self.getAngle(pos1, pos2))
 		# Check if the angles are compatible
@@ -157,7 +157,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return True
 
 	@objc.python_method
-	def compatibleProportions(self, glyph, p, n, originalHypot):
+	def compatibleProportions(self, glyph, pathIndex, nodeIndex, originalHypot):
 		# Exit if masters not compatible
 		if not glyph.mastersCompatible:
 			return None
@@ -171,13 +171,14 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			#except:
 			currentPath = layer.paths[pathIndex]
 			if currentPath:
-				currentNode = currentPath.nodes[n]
+				currentNode = currentPath.nodes[nodeIndex]
 				if currentNode:
-					offcurveNodes = [currentNode.prevNode, currentNode.nextNode]
+					offcurveNodes = [currentPath.nodes[nodeIndex - 1], currentPath.nodes[nodeIndex + 1]]
 					# Calculate the hypotenuses
 					hypotenuses = []
+					nodePos = currentNode.position
 					for i, offcurve in enumerate(offcurveNodes):
-						pos1 = currentNode.position
+						pos1 = nodePos
 						pos2 = offcurve.position
 						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
 					# Compare the proportions of one of the hypotenuses
@@ -254,30 +255,31 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		self.drawTextAtPoint(string, panelCenter, fontsize, align="center", fontColor=textColor)
 
 	@objc.python_method
-	def drawBackgroundHandles(self, layer, p, n, scale):
+	def drawBackgroundHandles(self, layer, pathIndex, nodeIndex, scale):
 		# radius = 2
 		glyph = layer.parent
-		currentLayer = layer.layerId
-		currentNode = layer.paths[p].nodes[n]
-		x = currentNode.position.x
-		y = currentNode.position.y
+		currentId = layer.layerId
+		currentNode = layer.paths[pathIndex].nodes[nodeIndex]
+		currentPos = currentNode.position
 		origin = self.activePosition()
 		basePosition = NSPoint(currentPos.x * scale + origin.x, currentPos.y * scale + origin.y)
-		for masterLayer in self.masterIds:
+		NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .65, .0, .4).set()  # orange
+		for masterId in self.masterIds:
 			# Don't draw the current layer
-			if masterLayer == currentLayer:
+			if masterId == currentId:
 				continue
 			# Get the nodes
-			baseNode = glyph.layers[masterLayer].paths[p].nodes[n]
-			nextNode = baseNode.nextNode
-			prevNode = baseNode.prevNode
+			masterLayer = glyph.layers[masterId]
+			masterPath = masterLayer.paths[pathIndex]
+			baseNode = masterPath.nodes[nodeIndex]
+			prevNode = masterPath.nodes[nodeIndex - 1]
+			nextNode = masterPath.nodes[nodeIndex + 1]
+			basePos = baseNode.position
 			for offcurve in [nextNode, prevNode]:
 				# Calculate the position delta to the base node
-				dx = offcurve.position.x - baseNode.position.x
-				dy = offcurve.position.y - baseNode.position.y
-				offcurvePosition = NSPoint( (x+dx) * scale + origin[0], (y+dy) * scale + origin[1] )
+				diff = subtractPoints(offcurve.position, basePos)
+				offcurvePosition = NSPoint((currentPos.x + diff.x) * scale + origin.x, (currentPos.y + diff.y) * scale + origin.y)
 				# Draw line
-				NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .65, .0, .4).set() # orange
 				line = NSBezierPath.bezierPath()
 				line.setLineWidth_(1)
 				line.moveToPoint_(basePosition)
@@ -300,43 +302,46 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				selectedNode = layer.selection[0]
 				if not isinstance(selectedNode, GSNode):
 					return
-				nextNode = selectedNode.nextNode
-				prevNode = selectedNode.prevNode
-				if selectedNode.type is OFFCURVE: # finding the next oncurve node
+				selectedPath = selectedNode.parent
+				nodeIndex = selectedNode.index
+				prevNode = selectedPath.nodes[nodeIndex - 1]
+				nextNode = selectedPath.nodes[nodeIndex + 1]
+
+				if selectedNode.type is OFFCURVE:  # finding the next oncurve node
 					if nextNode.type != OFFCURVE:
 						node = nextNode
 						prevNode = selectedNode
-						nextNode = node.nextNode
+						nextNode = selectedPath.nodes[nodeIndex + 2]
 					else:
 						node = prevNode
 						nextNode = selectedNode
-						prevNode = node.prevNode
+						prevNode = selectedPath.nodes[nodeIndex - 2]
 				else:
 					node = selectedNode
-			
+
 				if node.smooth:
 					path = node.parent
 					try:
-						p = layer.indexOfObjectInShapes_(path)
+						pathIndex = layer.indexOfObjectInShapes_(path)
 					except:
-						p = layer.indexOfPath_(path)
-					n = node.index
+						pathIndex = layer.indexOfPath_(path)
+					nodeIndex = node.index
 					hypotenuses = []
-					offcurveNodes = [node.prevNode, node.nextNode]
-				
+					offcurveNodes = [path.nodes[nodeIndex - 1], path.nodes[nodeIndex + 1]]
+					nodePos = node.position
 					# Calculate the hypotenuses
 					for i, offcurve in enumerate(offcurveNodes):
-						pos1 = node.position
+						pos1 = nodePos
 						pos2 = offcurve.position
-						hypotenuses.append(math.hypot(pos1.x - pos2.x , pos1.y - pos2.y))
+						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
 					# Check if handles are compatible
-					compatibleProportions = self.compatibleProportions(glyph, p, n, hypotenuses)
-				
+					compatibleProportions = self.compatibleProportions(glyph, pathIndex, nodeIndex, hypotenuses)
+
 					# Check if angles are compatible
 					pos1 = prevNode.position
 					pos2 = nextNode.position
 					angle = self.getAngle(pos1, pos2)
-					compatibleAngles = self.compatibleAngles(glyph, p, n)
+					compatibleAngles = self.compatibleAngles(glyph, pathIndex, nodeIndex)
 
 					# Calculate and draw the ratio
 					if Glyphs.boolDefaults["com.harbortype.showSmoothNodeAngleAndProportion.showRatio"]:
@@ -349,7 +354,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 						factor = 100 / (hypotenuses[0] + hypotenuses[1])
 						for i, offcurve in enumerate(offcurveNodes):
 							percent = round(hypotenuses[i] * factor, 1)
-							pos1 = node.position
+							pos1 = nodePos
 							pos2 = offcurve.position
 							labelPosition = NSPoint(pos1.x + (pos2.x - pos1.x) / 2, pos1.y + (pos2.y - pos1.y) / 2)
 							self.drawRoundedRectangleForStringAtPosition(u"%s%%" % str(percent), labelPosition, 10 * scale, angle, compatible=compatibleProportions)
@@ -379,44 +384,49 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			return
 		if not layer.paths:
 			return
-		
+
 		origin = self.activePosition()
-		for p, path in enumerate(layer.paths):
-			for n, node in enumerate(path.nodes):
+		selectedNode = None
+		# Draw handles from other masters
+		if Glyphs.boolDefaults["com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters"]:
+			if len(layer.selection) == 1:
+				selectedNode = layer.selection[0]
+				if not (isinstance(selectedNode, GSNode) and selectedNode.type is not OFFCURVE):
+					selectedNode = None
+
+		for pathIndex, path in enumerate(layer.paths):
+			for nodeIndex, node in enumerate(path.nodes):
 				if node.smooth and node.type is not OFFCURVE:
 					hypotenuses = []
-					prevNode = node.prevNode
-					nextNode = node.nextNode
+					prevNode = path.nodes[nodeIndex - 1]
+					nextNode = path.nodes[nodeIndex + 1]
 					offcurveNodes = [prevNode, nextNode]
 
 					# Draw handles from other masters
-					if Glyphs.boolDefaults["com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters"]:
-						if len(layer.selection) == 1:
-							selectedNode = layer.selection[0]
-							if selectedNode in offcurveNodes or node == selectedNode:
-								self.drawBackgroundHandles(layer, p, n, scale)
-					
+					if selectedNode and (selectedNode in offcurveNodes or node == selectedNode):
+						self.drawBackgroundHandles(layer, pathIndex, nodeIndex, scale)
+					nodePos = node.position
 					# Calculate the hypotenuses
 					for i, offcurve in enumerate(offcurveNodes):
-						pos1 = node.position
+						pos1 = nodePos
 						pos2 = offcurve.position
 						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
 
 					# Calculate the percentages
 					# factor = 100 / (hypotenuses[0] + hypotenuses[1])
-					compatibleProportions = self.compatibleProportions(glyph, p, n, hypotenuses)
+					compatibleProportions = self.compatibleProportions(glyph, pathIndex, nodeIndex, hypotenuses)
 
 					# Get the angle
 					pos1 = prevNode.position
 					pos2 = nextNode.position
 					# angle = self.getAngle(pos1, pos2)
-					compatibleAngles = self.compatibleAngles(glyph, p, n)
+					compatibleAngles = self.compatibleAngles(glyph, pathIndex, nodeIndex)
 
 					if not compatibleAngles and not compatibleProportions:
 						# scaledSize = fontsize / scale
 						width = handleSize * 2
 						margin = 0
-						center = NSPoint(node.position.x * scale + origin[0] , node.position.y * scale + origin[1])
+						center = NSPoint(nodePos.x * scale + origin.x, nodePos.y * scale + origin.y)
 						x, y = center
 
 						# Draw circle behind the node
