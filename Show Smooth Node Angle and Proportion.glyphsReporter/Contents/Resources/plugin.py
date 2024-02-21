@@ -166,10 +166,10 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		for masterId in self.masterIds:
 			layer = glyph.layers[masterId]
 			# Find the current base node and its surrounding nodes
-			try:
-				currentPath = layer.shapes[p]
-			except:
-				currentPath = layer.paths[p]
+			#try:
+			#	currentPath = layer.shapes[pathIndex]
+			#except:
+			currentPath = layer.paths[pathIndex]
 			if currentPath:
 				currentNode = currentPath.nodes[n]
 				if currentNode:
