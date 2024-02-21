@@ -162,7 +162,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		if not glyph.mastersCompatible:
 			return None
 		# Check for compatibility against all masters and special layers
-		compatibility = []
+
 		for masterId in self.masterIds:
 			layer = glyph.layers[masterId]
 			# Find the current base node and its surrounding nodes
@@ -187,13 +187,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					proportion2 = originalFactor * originalHypot[0]
 					# Check if the percentages are compatible
 					roundError = 0.5
-					if proportion1 >= proportion2 - roundError and proportion1 <= proportion2 + roundError:
-						compatibility.append(True)
-					else:
-						compatibility.append(False)
-		# If there are incompatible proportions, return False
-		if False in compatibility:
-			return False
+					if not (proportion1 >= proportion2 - roundError and proportion1 <= proportion2 + roundError):
+						return False
 		return True
 
 	@objc.python_method
