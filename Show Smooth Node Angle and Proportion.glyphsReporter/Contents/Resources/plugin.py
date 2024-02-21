@@ -211,8 +211,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		scaledSize = fontsize / scale
 		# width = len(string) * scaledSize
 		margin = 2
-		currentTab = Glyphs.font.currentTab
-		origin = currentTab.selectedLayerOrigin
+
+		origin = self.activePosition()
 		center = NSPoint(center.x * scale + origin[0], center.y * scale + origin[1])
 		x, y = center
 
@@ -261,9 +261,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		currentNode = layer.paths[p].nodes[n]
 		x = currentNode.position.x
 		y = currentNode.position.y
-		currentTab = Glyphs.font.currentTab
-		origin = currentTab.selectedLayerOrigin
-		basePosition = NSPoint( x * scale + origin[0], y * scale + origin[1] )
+		origin = self.activePosition()
+		basePosition = NSPoint(currentPos.x * scale + origin.x, currentPos.y * scale + origin.y)
 		for masterLayer in self.masterIds:
 			# Don't draw the current layer
 			if masterLayer == currentLayer:
@@ -365,7 +364,9 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 	def backgroundInViewCoords(self, layer=None):
 		""" Mark the nodes that may produce kinks """
 
-		layer = Glyphs.font.selectedLayers[0]
+		layer = self.activeLayer()
+		if not layer:
+			return
 		self.masterIds = self.getMasterIDs(layer)
 		scale = self.getScale()
 		handleSize = self.getHandleSize()
@@ -379,6 +380,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		if not layer.paths:
 			return
 		
+		origin = self.activePosition()
 		for p, path in enumerate(layer.paths):
 			for n, node in enumerate(path.nodes):
 				if node.smooth and node.type is not OFFCURVE:
@@ -414,8 +416,6 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 						# scaledSize = fontsize / scale
 						width = handleSize * 2
 						margin = 0
-						currentTab = Glyphs.font.currentTab
-						origin = currentTab.selectedLayerOrigin
 						center = NSPoint(node.position.x * scale + origin[0] , node.position.y * scale + origin[1])
 						x, y = center
 
