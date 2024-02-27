@@ -130,6 +130,15 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return angle
 
 	@objc.python_method
+	def getPrevNextNodes(self, currentPath, nodeIndex):
+		prevNode = currentPath.nodes[nodeIndex - 1]
+		try:
+			nextNode = currentPath.nodes[nodeIndex + 1]
+		except IndexError:
+			nextNode = currentPath.nodes[0]
+		return prevNode, nextNode
+
+	@objc.python_method
 	def compatibleAngles(self, glyph, pathIndex, nodeIndex):
 		# Exit if masters not compatible
 		if not glyph.mastersCompatible:
@@ -143,8 +152,9 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			if currentPath:
 				currentNode = currentPath.nodes[nodeIndex]
 				if currentNode:
-					pos1 = currentPath.nodes[nodeIndex - 1].position
-					pos2 = currentPath.nodes[nodeIndex + 1].position
+					prevNode, nextNode = self.getPrevNextNodes(currentPath, nodeIndex)
+					pos1 = prevNode.position
+					pos2 = nextNode.position
 					# Calculate the angle between the surrounding nodes
 					# (we are assuming the base node is smooth)
 					angles.append(self.getAngle(pos1, pos2))
@@ -173,7 +183,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			if currentPath:
 				currentNode = currentPath.nodes[nodeIndex]
 				if currentNode:
-					offcurveNodes = [currentPath.nodes[nodeIndex - 1], currentPath.nodes[nodeIndex + 1]]
+					prevNode, nextNode = self.getPrevNextNodes(currentPath, nodeIndex)
+					offcurveNodes = [prevNode, nextNode]
 					# Calculate the hypotenuses
 					hypotenuses = []
 					nodePos = currentNode.position
@@ -221,7 +232,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		textColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .75)
 		if not layer.parent.mastersCompatible or layer.layerId not in self.masterIds or len(self.masterIds) == 1:
 			# If masters are not compatible, or if it is not a special layer
-			NSColor.colorWithCalibratedRed_green_blue_alpha_(.85, .7, .7, .5).set() # reddish gray
+			NSColor.colorWithCalibratedRed_green_blue_alpha_(.85, .7, .7, .5).set()  # reddish gray
 		elif compatible:
 			# If angle or proportion is the same
 			NSColor.colorWithCalibratedRed_green_blue_alpha_(.9, .9, .9, .5).set()  # light gray
@@ -259,7 +270,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		# radius = 2
 		glyph = layer.parent
 		currentId = layer.layerId
-		currentNode = layer.paths[pathIndex].nodes[nodeIndex]
+		currentPath = layer.paths[pathIndex]
+		currentNode = currentPath.nodes[nodeIndex]
 		currentPos = currentNode.position
 		origin = self.activePosition()
 		basePosition = NSPoint(currentPos.x * scale + origin.x, currentPos.y * scale + origin.y)
@@ -272,8 +284,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			masterLayer = glyph.layers[masterId]
 			masterPath = masterLayer.paths[pathIndex]
 			baseNode = masterPath.nodes[nodeIndex]
-			prevNode = masterPath.nodes[nodeIndex - 1]
-			nextNode = masterPath.nodes[nodeIndex + 1]
+			prevNode, nextNode = self.getPrevNextNodes(currentPath, nodeIndex)
 			basePos = baseNode.position
 			for offcurve in [nextNode, prevNode]:
 				# Calculate the position delta to the base node
@@ -304,18 +315,14 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					return
 				selectedPath = selectedNode.parent
 				nodeIndex = selectedNode.index
-				prevNode = selectedPath.nodes[nodeIndex - 1]
-				nextNode = selectedPath.nodes[nodeIndex + 1]
+				prevNode, nextNode = self.getPrevNextNodes(selectedPath, nodeIndex)
 
 				if selectedNode.type is OFFCURVE:  # finding the next oncurve node
 					if nextNode.type != OFFCURVE:
 						node = nextNode
-						prevNode = selectedNode
-						nextNode = selectedPath.nodes[nodeIndex + 2]
 					else:
 						node = prevNode
-						nextNode = selectedNode
-						prevNode = selectedPath.nodes[nodeIndex - 2]
+					prevNode, nextNode = self.getPrevNextNodes(selectedPath, node.index)
 				else:
 					node = selectedNode
 
@@ -327,7 +334,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 						pathIndex = layer.indexOfPath_(path)
 					nodeIndex = node.index
 					hypotenuses = []
-					offcurveNodes = [path.nodes[nodeIndex - 1], path.nodes[nodeIndex + 1]]
+					prevNode, nextNode = self.getPrevNextNodes(path, nodeIndex)
+					offcurveNodes = [prevNode, nextNode]
 					nodePos = node.position
 					# Calculate the hypotenuses
 					for i, offcurve in enumerate(offcurveNodes):
@@ -398,8 +406,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			for nodeIndex, node in enumerate(path.nodes):
 				if node.smooth and node.type is not OFFCURVE:
 					hypotenuses = []
-					prevNode = path.nodes[nodeIndex - 1]
-					nextNode = path.nodes[nodeIndex + 1]
+					prevNode, nextNode = self.getPrevNextNodes(path, nodeIndex)
 					offcurveNodes = [prevNode, nextNode]
 
 					# Draw handles from other masters
