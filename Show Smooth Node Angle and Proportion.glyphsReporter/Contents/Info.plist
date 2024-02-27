@@ -13,15 +13,15 @@
 	<key>CFBundleName</key>
 	<string>Show Smooth Node Angle and Proportion</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.3</string>
+	<string>1.4</string>
 	<key>CFBundleVersion</key>
-	<string>7</string>
+	<string>8</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/harbortype/ShowSmoothNodeAngleAndProportion/master/Show%20Smooth%20Node%20Angle%20and%20Proportion.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/harbortype/ShowSmoothNodeAngleAndProportion</string>
 	<key>productReleaseNotes</key>
-	<string>Improved support for Glyphs 3.</string>
+	<string>Cleanup and optimizations.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Harbor Type, 2020</string>
 	<key>NSPrincipalClass</key>
