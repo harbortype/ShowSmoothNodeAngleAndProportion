@@ -15,7 +15,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.4</string>
 	<key>CFBundleVersion</key>
-	<string>8</string>
+	<string>9</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/harbortype/ShowSmoothNodeAngleAndProportion/master/Show%20Smooth%20Node%20Angle%20and%20Proportion.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
