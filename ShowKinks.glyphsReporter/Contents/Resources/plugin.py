@@ -104,6 +104,24 @@ class showKinks(ReporterPlugin):
 			pass
 
 	@objc.python_method
+	def getAxisTag(self, axis):
+		"""Returns the axis tag."""
+		if Glyphs.versionNumber < 3.0:
+			return axis["Tag"]
+		else:
+			return axis.axisTag
+
+	@objc.python_method
+	def getBraceLayerAxisValues(self, thisLayer):
+		"""Returns the brace layer axes values as a list of floats."""
+		axesDict = thisLayer.attributes["coordinates"]
+		orderedAxesDict = dict()
+		for axisId in self.axesIds:
+			orderedAxesDict[axisId] = axesDict[axisId]
+		layerValues = list(orderedAxesDict.values())
+		return layerValues
+
+	@objc.python_method
 	def getHandleSize(self):
 		""" Get the handle size in scale """
 		handleSizes = (5, 8, 12)
@@ -116,9 +134,46 @@ class showKinks(ReporterPlugin):
 		""" Get the masters and special layers IDs """
 		masterIds = set()
 		glyph = layer.parent
+		font = glyph.parent
+		axisTags = [self.getAxisTag(x) for x in font.axes]
+		ignoreAxes = []
+		if "Ignore Kinks Along Axes" in font.customParameters:
+			ignoreAxes = font.customParameters["Ignore Kinks Along Axes"]
+			ignoreAxes = [x.strip() for x in ignoreAxes.split(",")]
+			for x in range(len(ignoreAxes)-1, -1, -1):
+				if ignoreAxes[x] not in axisTags:
+					del ignoreAxes[x]
+
+		thisMasterCoords = font.selectedFontMaster.axes
 		for lyr in glyph.layers:
-			if lyr.isSpecialLayer or lyr.layerId == lyr.associatedMasterId:
-				masterIds.add(lyr.layerId)
+			# Process master layers
+			if lyr.layerId == lyr.associatedMasterId:
+				if not ignoreAxes:
+					masterIds.add(lyr.layerId)
+					continue
+
+				# If any axes should be ignored, discard layers that
+				# do not share the same coordinates on those axes
+				thisMaster = font.masters[lyr.associatedMasterId]
+				for axisTag in ignoreAxes:
+					# get the axis index
+					axisIndex = axisTags.index(axisTag)
+					if thisMaster.axes[axisIndex] == thisMasterCoords[axisIndex]:
+						masterIds.add(lyr.layerId)
+
+			# Process brace layers
+			elif lyr.isSpecialLayer:
+				if not ignoreAxes:
+					masterIds.add(lyr.layerId)
+					continue
+
+				if lyr.isBraceLayer():
+					lyrCoords = self.getBraceLayerAxisValues(lyr)
+					for axisTag in ignoreAxes:
+						axisIndex = axisTags.index(axisTag)
+						if lyrCoords[axisIndex] == thisMasterCoords[axisIndex]:
+							masterIds.add(lyr.layerId)
+
 		return list(masterIds)
 
 	@objc.python_method
