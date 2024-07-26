@@ -1,6 +1,8 @@
-# Show Smooth Node Angle and Proportion
+# Show Kinks
 
 ![](images/preview.png)
+
+Previously known as *Show Smooth Node Angle and Proportion*.
 
 This is a plugin for the [Glyphs font editor](https://glyphsapp.com/).  
 

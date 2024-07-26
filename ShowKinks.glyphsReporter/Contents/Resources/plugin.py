@@ -19,19 +19,19 @@ from AppKit import NSMenuItem, NSColor, NSString, NSFont, NSBezierPath, NSLog, N
 ###########################################################################################################
 
 
-class showSmoothNodeAngleAndProportion(ReporterPlugin):
+class showKinks(ReporterPlugin):
 
 	@objc.python_method
 	def settings(self):
 		self.menuName = Glyphs.localize({
-			'en': u'Smooth Node Angle and Proportion',
+			'en': u'Kinks',
 			'pt': u'Ângulo e Proporção dos Nós',
 		})
 		self.thisMenuTitle = {"name": u"%s:" % self.menuName, "action": None}
 		self.masterIds = []
 		Glyphs.registerDefaults({
-			"com.harbortype.showSmoothNodeAngleAndProportion.showRatio": 0,
-			"com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters": 0,
+			"com.harbortype.showKinks.showRatio": 0,
+			"com.harbortype.showKinks.showOtherMasters": 0,
 		})
 
 	@objc.python_method
@@ -39,7 +39,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return [
 			{
 				'name': Glyphs.localize({
-					'en': u"Show Smooth Node Angle and Proportion:",
+					'en': u"Show Kinks:",
 					'pt': u"Exibir Ângulo e Proporção dos Nós:",
 				}),
 				'action': None,
@@ -50,7 +50,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					'pt': u"Exibir ângulos das outras masters",
 				}),
 				'action': self.toggleMasters_,
-				'state': Glyphs.defaults["com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters"],
+				'state': Glyphs.defaults["com.harbortype.showKinks.showOtherMasters"],
 			},
 			{
 				'name': Glyphs.localize({
@@ -58,7 +58,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					'pt': u"Exibir razão ao invés de porcentagens",
 				}),
 				'action': self.toggleRatio_,
-				'state': Glyphs.defaults["com.harbortype.showSmoothNodeAngleAndProportion.showRatio"],
+				'state': Glyphs.defaults["com.harbortype.showKinks.showRatio"],
 			},
 		]
 
@@ -89,7 +89,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 	@objc.python_method
 	def toggleSetting(self, prefName):
-		pref = "com.harbortype.showSmoothNodeAngleAndProportion.%s" % prefName
+		pref = "com.harbortype.showKinks.%s" % prefName
 		oldSetting = bool(Glyphs.defaults[pref])
 		Glyphs.defaults[pref] = int(not oldSetting)
 		self.refreshView()
@@ -355,7 +355,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					compatibleAngles = self.compatibleAngles(glyph, pathIndex, nodeIndex)
 
 					# Calculate and draw the ratio
-					if Glyphs.boolDefaults["com.harbortype.showSmoothNodeAngleAndProportion.showRatio"]:
+					if Glyphs.boolDefaults["com.harbortype.showKinks.showRatio"]:
 						ratio = round(hypotenuses[0] / hypotenuses[1], 3)
 						labelPosition = nodePos
 						self.drawRoundedRectangleForStringAtPosition(u"%.2f" % ratio, labelPosition, 10 * scale, angle, compatible=compatibleProportions, angleOffset=270)
@@ -399,7 +399,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		origin = self.activePosition()
 		selectedNode = None
 		# Draw handles from other masters
-		if Glyphs.boolDefaults["com.harbortype.showSmoothNodeAngleAndProportion.showOtherMasters"]:
+		if Glyphs.boolDefaults["com.harbortype.showKinks.showOtherMasters"]:
 			if len(layer.selection) == 1:
 				selectedNode = layer.selection[0]
 				if not (isinstance(selectedNode, GSNode) and selectedNode.type is not OFFCURVE):

@@ -7,25 +7,25 @@
 	<key>CFBundleExecutable</key>
 	<string>plugin</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.harbortype.showSmoothNodeAngleAndProportion</string>
+	<string>com.harbortype.showKinks</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Show Smooth Node Angle and Proportion</string>
+	<string>Show Kinks</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.4.1</string>
+	<string>2.0</string>
 	<key>CFBundleVersion</key>
-	<string>10</string>
+	<string>11</string>
 	<key>UpdateFeedURL</key>
-	<string>https://raw.githubusercontent.com/harbortype/ShowSmoothNodeAngleAndProportion/master/Show%20Smooth%20Node%20Angle%20and%20Proportion.glyphsReporter/Contents/Info.plist</string>
+	<string>https://raw.githubusercontent.com/harbortype/showKinks/master/Show%20Smooth%20Node%20Angle%20and%20Proportion.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
-	<string>https://github.com/harbortype/ShowSmoothNodeAngleAndProportion</string>
+	<string>https://github.com/harbortype/showKinks</string>
 	<key>productReleaseNotes</key>
 	<string>Fixes.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Harbor Type, 2020</string>
 	<key>NSPrincipalClass</key>
-	<string>showSmoothNodeAngleAndProportion</string>
+	<string>showKinks</string>
 	<key>PyMainFileNames</key>
 	<array>
 		<string>plugin.py</string>
