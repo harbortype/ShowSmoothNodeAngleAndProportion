@@ -175,6 +175,7 @@ class showKinks(ReporterPlugin):
 					if self.ignoreAxes[x] not in self.axesTags:
 						del self.ignoreAxes[x]
 
+		activeMaster = layer.master
 		for lyr in glyph.layers:
 			# Process master layers
 			if lyr.layerId == lyr.associatedMasterId:
@@ -184,7 +185,7 @@ class showKinks(ReporterPlugin):
 
 				# If any axes should be ignored, discard layers that
 				# do not share the same coordinates on those axes
-				if self.matchIgnoredAxes(lyr, font.selectedFontMaster):
+				if self.matchIgnoredAxes(lyr, activeMaster):
 					masterIds.add(lyr.layerId)
 
 			# Process brace layers
@@ -194,7 +195,7 @@ class showKinks(ReporterPlugin):
 					continue
 
 				if lyr.isBraceLayer():
-					if self.matchIgnoredAxes(lyr, font.selectedFontMaster):
+					if self.matchIgnoredAxes(lyr, activeMaster):
 						masterIds.add(lyr.layerId)
 
 		return list(masterIds)
