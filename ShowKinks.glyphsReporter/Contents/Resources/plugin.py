@@ -122,7 +122,6 @@ class showKinks(ReporterPlugin):
 	def getLayerAxesValues(self, thisLayer):
 		"""Returns the layer axes values as a list of floats."""
 		if thisLayer.isBraceLayer():
-			# brace layer
 			axesDict = thisLayer.attributes["coordinates"]
 			if not axesDict:
 				return []
@@ -131,11 +130,13 @@ class showKinks(ReporterPlugin):
 				orderedAxesDict[axisId] = axesDict[axisId]
 			layerValues = list(orderedAxesDict.values())
 		elif thisLayer.isBracketLayer():
-			# bracket layer
 			# TODO
+			axesDict = thisLayer.attributes["axisRules"]
+			if not axesDict:
+				return []
 			layerValues = []
 		else:
-			# normal layer (master)
+			# master layer
 			font = thisLayer.parent.parent
 			masterLayer = font.masters[thisLayer.associatedMasterId]
 			layerValues = list(masterLayer.axes)
@@ -176,22 +177,26 @@ class showKinks(ReporterPlugin):
 					if self.ignoreAxes[x] not in self.axesTags:
 						del self.ignoreAxes[x]
 
-		for lyr in glyph.layers:
-			if self.ignoreAxes:
-				# If any axes should be ignored, discard layers that
-				# do not share the same coordinates on those axes
-				if lyr.layerId == lyr.associatedMasterId or lyr.isBraceLayer():
-					if self.matchIgnoredAxes(lyr, activeMaster):
+		if layer.isBracketLayer():
+			currentLayerAxisRules = layer.attributes["axisRules"]
+			if not currentLayerAxisRules:
+				return []
+			for lyr in glyph.layers:
+				if lyr.isBracketLayer():
+					lyrRules = lyr.attributes["axisRules"]
+					if lyrRules == currentLayerAxisRules:
 						layerIds.add(lyr.layerId)
-				elif lyr.isBracketLayer():
-					# TODO
-					pass
-			else:
-				if lyr.layerId == lyr.associatedMasterId or lyr.isBraceLayer():
-					layerIds.add(lyr.layerId)
-				elif lyr.isBracketLayer():
-					# TODO
-					pass
+		else:
+			for lyr in glyph.layers:
+				if self.ignoreAxes:
+					# If any axes should be ignored, discard layers that
+					# do not share the same coordinates on those axes
+					if lyr.layerId == lyr.associatedMasterId or lyr.isBraceLayer():
+						if self.matchIgnoredAxes(lyr, activeMaster):
+							layerIds.add(lyr.layerId)
+				else:
+					if lyr.layerId == lyr.associatedMasterId or lyr.isBraceLayer():
+						layerIds.add(lyr.layerId)
 
 		return list(layerIds)
 
@@ -219,8 +224,8 @@ class showKinks(ReporterPlugin):
 			return
 		# Check for compatibility against all masters and special layers
 		angles = []
-		for masterId in self.layerIds:
-			layer = glyph.layers[masterId]
+		for layerId in self.layerIds:
+			layer = glyph.layers[layerId]
 			# Find the current base node and the coordinates of its surrounding nodes
 			try:
 				currentPath = layer.paths[pathIndex]
@@ -250,8 +255,8 @@ class showKinks(ReporterPlugin):
 			return None
 		# Check for compatibility against all masters and special layers
 
-		for masterId in self.layerIds:
-			layer = glyph.layers[masterId]
+		for layerId in self.layerIds:
+			layer = glyph.layers[layerId]
 			# Find the current base node and its surrounding nodes
 			try:
 				currentPath = layer.paths[pathIndex]
