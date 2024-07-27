@@ -161,11 +161,12 @@ class showKinks(ReporterPlugin):
 		return axesMatch
 
 	@objc.python_method
-	def getMasterIDs(self, layer):
+	def getLayerIDs(self, layer):
 		""" Get the masters and special layers IDs """
-		masterIds = set()
+		layerIds = set()
 		glyph = layer.parent
 		font = glyph.parent
+		activeMaster = layer.master
 		self.ignoreAxes = []
 		if "Ignore Kinks Along Axes" in font.customParameters:
 			ignoreParam = font.customParameters["Ignore Kinks Along Axes"]
@@ -175,30 +176,24 @@ class showKinks(ReporterPlugin):
 					if self.ignoreAxes[x] not in self.axesTags:
 						del self.ignoreAxes[x]
 
-		activeMaster = layer.master
 		for lyr in glyph.layers:
-			# Process master layers
-			if lyr.layerId == lyr.associatedMasterId:
-				if not self.ignoreAxes:
-					masterIds.add(lyr.layerId)
-					continue
-
+			if self.ignoreAxes:
 				# If any axes should be ignored, discard layers that
 				# do not share the same coordinates on those axes
-				if self.matchIgnoredAxes(lyr, activeMaster):
-					masterIds.add(lyr.layerId)
-
-			# Process brace layers
-			elif lyr.isSpecialLayer:
-				if not self.ignoreAxes:
-					masterIds.add(lyr.layerId)
-					continue
-
-				if lyr.isBraceLayer():
+				if lyr.layerId == lyr.associatedMasterId or lyr.isBraceLayer():
 					if self.matchIgnoredAxes(lyr, activeMaster):
-						masterIds.add(lyr.layerId)
+						layerIds.add(lyr.layerId)
+				elif lyr.isBracketLayer():
+					# TODO
+					pass
+			else:
+				if lyr.layerId == lyr.associatedMasterId or lyr.isBraceLayer():
+					layerIds.add(lyr.layerId)
+				elif lyr.isBracketLayer():
+					# TODO
+					pass
 
-		return list(masterIds)
+		return list(layerIds)
 
 	@objc.python_method
 	def getAngle(self, p1, p2):
@@ -479,7 +474,7 @@ class showKinks(ReporterPlugin):
 		for axis in font.axes:
 			self.axesTags.append(self.getAxisTag(axis))
 			self.axesIds.append(axis.axisId)
-		self.layerIds = self.getMasterIDs(layer)
+		self.layerIds = self.getLayerIDs(layer)
 		scale = self.getScale()
 		handleSize = self.getHandleSize()
 		glyph = layer.parent
