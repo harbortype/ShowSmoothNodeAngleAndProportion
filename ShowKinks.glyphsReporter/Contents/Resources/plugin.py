@@ -360,40 +360,40 @@ class showKinks(ReporterPlugin):
 
 	@objc.python_method
 	def drawBackgroundHandles(self, layer, pathIndex, nodeIndex, scale):
-		# radius = 2
 		glyph = layer.parent
 		currentId = layer.layerId
 		currentPath = layer.paths[pathIndex]
 		currentNode = currentPath.nodes[nodeIndex]
 		currentPos = currentNode.position
 		origin = self.activePosition()
-		basePosition = NSPoint(currentPos.x * scale + origin.x, currentPos.y * scale + origin.y)
+		basePosition = NSPoint(
+			origin.x + currentPos.x * scale,
+			origin.y + currentPos.y * scale
+		)
 		COLOR_YELLOW_LINE.set()
-		for masterId in self.layerIds:
+		for layerId in self.layerIds:
 			# Don't draw the current layer
-			if masterId == currentId:
+			if layerId == currentId:
 				continue
 			# Get the nodes
-			masterLayer = glyph.layers[masterId]
+			masterLayer = glyph.layers[layerId]
 			masterPath = masterLayer.paths[pathIndex]
 			baseNode = masterPath.nodes[nodeIndex]
-			prevNode, nextNode = self.getPrevNextNodes(currentPath, nodeIndex)
+			prevNode, nextNode = self.getPrevNextNodes(masterPath, nodeIndex)
 			basePos = baseNode.position
 			for offcurve in [nextNode, prevNode]:
 				# Calculate the position delta to the base node
 				diff = subtractPoints(offcurve.position, basePos)
-				offcurvePosition = NSPoint((currentPos.x + diff.x) * scale + origin.x, (currentPos.y + diff.y) * scale + origin.y)
+				offcurvePosition = NSPoint(
+					origin.x + (currentPos.x + diff.x) * scale,
+					origin.y + (currentPos.y + diff.y) * scale
+				)
 				# Draw line
 				line = NSBezierPath.bezierPath()
 				line.setLineWidth_(1)
 				line.moveToPoint_(basePosition)
 				line.lineToPoint_(offcurvePosition)
 				line.stroke()
-				# Draw nodes
-				# panel = NSRect()
-				# panel.size = NSSize(radius * 2, radius * 2)
-				# panel.origin = NSPoint((x+dx) * scale + origin.x - radius, (y+dy) * scale + origin.y - radius)
-				# NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(panel, radius, radius).stroke()
 
 	@objc.python_method
 	def foregroundInViewCoords(self, layer=None):
