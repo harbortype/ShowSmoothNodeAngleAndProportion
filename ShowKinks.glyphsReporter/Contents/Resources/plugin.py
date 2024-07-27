@@ -18,6 +18,13 @@ from AppKit import NSMenuItem, NSColor, NSString, NSFont, NSBezierPath, NSLog, N
 #
 ###########################################################################################################
 
+TEXT_COLOR = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .75)
+COLOR_INCOMPATIBLE = NSColor.colorWithCalibratedRed_green_blue_alpha_(.6, .65, .8, .5)
+COLOR_ORANGE = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .65, .65, .6)
+COLOR_YELLOW = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .9, .4, .7)
+COLOR_YELLOW_LINE = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .65, .0, .4)
+COLOR_GRAY = NSColor.colorWithCalibratedRed_green_blue_alpha_(.9, .9, .9, .5)
+
 
 class showKinks(ReporterPlugin):
 
@@ -28,7 +35,7 @@ class showKinks(ReporterPlugin):
 			'pt': u'Ângulo e Proporção dos Nós',
 		})
 		self.thisMenuTitle = {"name": u"%s:" % self.menuName, "action": None}
-		self.masterIds = []
+		self.layerIds = []
 		Glyphs.registerDefaults({
 			"com.harbortype.showKinks.showRatio": 0,
 			"com.harbortype.showKinks.showOtherMasters": 0,
@@ -112,13 +119,26 @@ class showKinks(ReporterPlugin):
 			return axis.axisTag
 
 	@objc.python_method
-	def getBraceLayerAxisValues(self, thisLayer):
-		"""Returns the brace layer axes values as a list of floats."""
-		axesDict = thisLayer.attributes["coordinates"]
-		orderedAxesDict = dict()
-		for axisId in self.axesIds:
-			orderedAxesDict[axisId] = axesDict[axisId]
-		layerValues = list(orderedAxesDict.values())
+	def getLayerAxesValues(self, thisLayer):
+		"""Returns the layer axes values as a list of floats."""
+		if thisLayer.isBraceLayer():
+			# brace layer
+			axesDict = thisLayer.attributes["coordinates"]
+			if not axesDict:
+				return []
+			orderedAxesDict = dict()
+			for axisId in self.axesIds:
+				orderedAxesDict[axisId] = axesDict[axisId]
+			layerValues = list(orderedAxesDict.values())
+		elif thisLayer.isBracketLayer():
+			# bracket layer
+			# TODO
+			layerValues = []
+		else:
+			# normal layer (master)
+			font = thisLayer.parent.parent
+			masterLayer = font.masters[thisLayer.associatedMasterId]
+			layerValues = list(masterLayer.axes)
 		return layerValues
 
 	@objc.python_method
@@ -130,49 +150,52 @@ class showKinks(ReporterPlugin):
 		return handleSize
 
 	@objc.python_method
+	def matchIgnoredAxes(self, layer, activeMaster):
+		""" Checks if the current layer should be checked against the active master considering the ignored axes parameter """
+		activeMasterCoords = activeMaster.axes
+		layerCoords = self.getLayerAxesValues(layer)
+		if not layerCoords:
+			return
+		axesIndexes = [self.axesTags.index(x) for x in self.ignoreAxes]
+		axesMatch = all([layerCoords[i] == activeMasterCoords[i] for i in axesIndexes])
+		return axesMatch
+
+	@objc.python_method
 	def getMasterIDs(self, layer):
 		""" Get the masters and special layers IDs """
 		masterIds = set()
 		glyph = layer.parent
 		font = glyph.parent
-		axisTags = [self.getAxisTag(x) for x in font.axes]
-		ignoreAxes = []
+		self.ignoreAxes = []
 		if "Ignore Kinks Along Axes" in font.customParameters:
-			ignoreAxes = font.customParameters["Ignore Kinks Along Axes"]
-			ignoreAxes = [x.strip() for x in ignoreAxes.split(",")]
-			for x in range(len(ignoreAxes)-1, -1, -1):
-				if ignoreAxes[x] not in axisTags:
-					del ignoreAxes[x]
+			ignoreParam = font.customParameters["Ignore Kinks Along Axes"]
+			if ignoreParam:
+				self.ignoreAxes = [x.strip() for x in ignoreParam.split(",")]
+				for x in range(len(self.ignoreAxes)-1, -1, -1):
+					if self.ignoreAxes[x] not in self.axesTags:
+						del self.ignoreAxes[x]
 
-		thisMasterCoords = font.selectedFontMaster.axes
 		for lyr in glyph.layers:
 			# Process master layers
 			if lyr.layerId == lyr.associatedMasterId:
-				if not ignoreAxes:
+				if not self.ignoreAxes:
 					masterIds.add(lyr.layerId)
 					continue
 
 				# If any axes should be ignored, discard layers that
 				# do not share the same coordinates on those axes
-				thisMaster = font.masters[lyr.associatedMasterId]
-				for axisTag in ignoreAxes:
-					# get the axis index
-					axisIndex = axisTags.index(axisTag)
-					if thisMaster.axes[axisIndex] == thisMasterCoords[axisIndex]:
-						masterIds.add(lyr.layerId)
+				if self.matchIgnoredAxes(lyr, font.selectedFontMaster):
+					masterIds.add(lyr.layerId)
 
 			# Process brace layers
 			elif lyr.isSpecialLayer:
-				if not ignoreAxes:
+				if not self.ignoreAxes:
 					masterIds.add(lyr.layerId)
 					continue
 
 				if lyr.isBraceLayer():
-					lyrCoords = self.getBraceLayerAxisValues(lyr)
-					for axisTag in ignoreAxes:
-						axisIndex = axisTags.index(axisTag)
-						if lyrCoords[axisIndex] == thisMasterCoords[axisIndex]:
-							masterIds.add(lyr.layerId)
+					if self.matchIgnoredAxes(lyr, font.selectedFontMaster):
+						masterIds.add(lyr.layerId)
 
 		return list(masterIds)
 
@@ -196,11 +219,11 @@ class showKinks(ReporterPlugin):
 	@objc.python_method
 	def compatibleAngles(self, glyph, pathIndex, nodeIndex):
 		# Exit if masters not compatible
-		if not glyph.mastersCompatible:
+		if not glyph.mastersCompatibleForLayerIds_(self.layerIds):
 			return
 		# Check for compatibility against all masters and special layers
 		angles = []
-		for masterId in self.masterIds:
+		for masterId in self.layerIds:
 			layer = glyph.layers[masterId]
 			# Find the current base node and the coordinates of its surrounding nodes
 			try:
@@ -227,11 +250,11 @@ class showKinks(ReporterPlugin):
 	@objc.python_method
 	def compatibleProportions(self, glyph, pathIndex, nodeIndex, originalHypot):
 		# Exit if masters not compatible
-		if not glyph.mastersCompatible:
+		if not glyph.mastersCompatibleForLayerIds_(self.layerIds):
 			return None
 		# Check for compatibility against all masters and special layers
 
-		for masterId in self.masterIds:
+		for masterId in self.layerIds:
 			layer = glyph.layers[masterId]
 			# Find the current base node and its surrounding nodes
 			try:
@@ -287,16 +310,27 @@ class showKinks(ReporterPlugin):
 		x, y = center
 
 		# Set colors
-		textColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .75)
-		if not layer.parent.mastersCompatible or layer.layerId not in self.masterIds or len(self.masterIds) == 1:
-			# If masters are not compatible, or if it is not a special layer
-			NSColor.colorWithCalibratedRed_green_blue_alpha_(.85, .7, .7, .5).set()  # reddish gray
-		elif compatible:
+		textColor = TEXT_COLOR
+		if compatible:
 			# If angle or proportion is the same
-			NSColor.colorWithCalibratedRed_green_blue_alpha_(.9, .9, .9, .5).set()  # light gray
+			COLOR_GRAY.set()
+		elif not layer.parent.mastersCompatibleForLayerIds_(self.layerIds):
+			# If masters are not compatible, or if it is not a special layer
+			COLOR_INCOMPATIBLE.set()
+			# print("Layers are incompatible.")
+		elif layer.layerId not in self.layerIds:
+			# Not a master layer nor special layer
+			COLOR_INCOMPATIBLE.set()
+			# print("Layer should not be considered.")
+		elif len(self.layerIds) == 1:
+			# If is single master
+			COLOR_INCOMPATIBLE.set()
+		elif layer.parent.parent.customParameters["Ignore Kinks Along Axes"]:
+			# If angle or proportion is NOT the same and some axes are being ignored
+			COLOR_ORANGE.set()
 		else:
 			# If angle or proportion is NOT the same
-			NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .9, .4, .7).set()  # yellow
+			COLOR_YELLOW.set()
 
 		# Configure text label
 		string = NSString.stringWithString_(string)
@@ -333,8 +367,8 @@ class showKinks(ReporterPlugin):
 		currentPos = currentNode.position
 		origin = self.activePosition()
 		basePosition = NSPoint(currentPos.x * scale + origin.x, currentPos.y * scale + origin.y)
-		NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .65, .0, .4).set()  # orange
-		for masterId in self.masterIds:
+		COLOR_YELLOW_LINE.set()
+		for masterId in self.layerIds:
 			# Don't draw the current layer
 			if masterId == currentId:
 				continue
@@ -438,15 +472,21 @@ class showKinks(ReporterPlugin):
 		layer = self.activeLayer()
 		if not layer:
 			return
-		self.masterIds = self.getMasterIDs(layer)
+		font = layer.parent.parent
+		self.axesTags = []
+		self.axesIds = []
+		for axis in font.axes:
+			self.axesTags.append(self.getAxisTag(axis))
+			self.axesIds.append(axis.axisId)
+		self.layerIds = self.getMasterIDs(layer)
 		scale = self.getScale()
 		handleSize = self.getHandleSize()
 		glyph = layer.parent
-		if len(self.masterIds) <= 1:
+		if len(self.layerIds) <= 1:
 			return
-		if layer.layerId not in self.masterIds:
+		if layer.layerId not in self.layerIds:
 			return
-		if not glyph.mastersCompatible:
+		if not glyph.mastersCompatibleForLayerIds_(self.layerIds):
 			return
 		if not layer.paths:
 			return
@@ -498,7 +538,10 @@ class showKinks(ReporterPlugin):
 						panel = NSRect()
 						panel.size = NSSize(width + margin * 2, width + margin * 2)
 						panel.origin = NSPoint(x - width / 2 - margin, y - width / 2 - margin)
-						NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .9, .4, .7).set()  # yellow
+						if self.ignoreAxes:
+							COLOR_ORANGE.set()
+						else:
+							COLOR_YELLOW.set()
 						NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(panel, (width + margin * 2) * 0.5, (width + margin * 2) * 0.5).fill()
 
 	@objc.python_method
