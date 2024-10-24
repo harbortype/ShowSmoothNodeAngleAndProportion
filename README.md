@@ -38,6 +38,14 @@ You also have the option to display the proportion between handles as a single r
 
 ![](images/showRatio.png)
 
+### Ignore axes (custom parameter)
+
+In some rare projects you might want to disable checks across one or more axes: if you have incompatible roman and italic masters on a single file, sans and serif, or any other masters combinations that are not meant to be interpolatable between them. In these cases, you can add a font-wide custom parameter. Manually type (or copy and paste) its name (`Ignore Kinks Along Axes`) and fill it with a comma-separated list of axis tags that should not be checked.
+
+When this parameter is present, the plugin will only check the current master against masters that have the same value on the specified axes.
+
+![](images/ignoreAxes.gif)
+
 ## Installation
 
 1. Download the complete ZIP file and unpack it, or clone the repository.
