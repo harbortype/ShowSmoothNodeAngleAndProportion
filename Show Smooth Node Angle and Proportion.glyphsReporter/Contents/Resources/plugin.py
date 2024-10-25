@@ -408,6 +408,13 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		for pathIndex, path in enumerate(layer.paths):
 			for nodeIndex, node in enumerate(path.nodes):
 				if node.smooth and node.type is not OFFCURVE:
+
+					# Prevent error in open paths with smooth nodes
+					# as the first or last nodes by skipping them
+					if not path.closed:
+						if nodeIndex == 0 or nodeIndex == len(path.nodes) - 1:
+							continue
+
 					hypotenuses = []
 					prevNode, nextNode = self.getPrevNextNodes(path, nodeIndex)
 					offcurveNodes = [prevNode, nextNode]
