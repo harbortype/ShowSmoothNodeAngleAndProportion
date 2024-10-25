@@ -270,7 +270,7 @@ class showKinks(ReporterPlugin):
 					# Calculate the hypotenuses
 					hypotenuses = []
 					nodePos = currentNode.position
-					for i, offcurve in enumerate(offcurveNodes):
+					for offcurve in offcurveNodes:
 						pos1 = nodePos
 						pos2 = offcurve.position
 						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
@@ -431,7 +431,7 @@ class showKinks(ReporterPlugin):
 					offcurveNodes = [prevNode, nextNode]
 					nodePos = node.position
 					# Calculate the hypotenuses
-					for i, offcurve in enumerate(offcurveNodes):
+					for offcurve in offcurveNodes:
 						pos1 = nodePos
 						pos2 = offcurve.position
 						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
@@ -504,6 +504,13 @@ class showKinks(ReporterPlugin):
 		for pathIndex, path in enumerate(layer.paths):
 			for nodeIndex, node in enumerate(path.nodes):
 				if node.smooth and node.type is not OFFCURVE:
+
+					# Prevent error in open paths with smooth nodes
+					# as the first or last nodes by skipping them
+					if not path.closed:
+						if nodeIndex == 0 or nodeIndex == len(path.nodes) - 1:
+							continue
+
 					hypotenuses = []
 					prevNode, nextNode = self.getPrevNextNodes(path, nodeIndex)
 					offcurveNodes = [prevNode, nextNode]
@@ -513,7 +520,7 @@ class showKinks(ReporterPlugin):
 						self.drawBackgroundHandles(layer, pathIndex, nodeIndex, scale)
 					nodePos = node.position
 					# Calculate the hypotenuses
-					for i, offcurve in enumerate(offcurveNodes):
+					for offcurve in offcurveNodes:
 						pos1 = nodePos
 						pos2 = offcurve.position
 						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
