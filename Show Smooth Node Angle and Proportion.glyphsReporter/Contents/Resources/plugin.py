@@ -191,7 +191,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					# Calculate the hypotenuses
 					hypotenuses = []
 					nodePos = currentNode.position
-					for i, offcurve in enumerate(offcurveNodes):
+					for offcurve in offcurveNodes:
 						pos1 = nodePos
 						pos2 = offcurve.position
 						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
@@ -341,7 +341,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					offcurveNodes = [prevNode, nextNode]
 					nodePos = node.position
 					# Calculate the hypotenuses
-					for i, offcurve in enumerate(offcurveNodes):
+					for offcurve in offcurveNodes:
 						pos1 = nodePos
 						pos2 = offcurve.position
 						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
@@ -417,7 +417,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 						self.drawBackgroundHandles(layer, pathIndex, nodeIndex, scale)
 					nodePos = node.position
 					# Calculate the hypotenuses
-					for i, offcurve in enumerate(offcurveNodes):
+					for offcurve in offcurveNodes:
 						pos1 = nodePos
 						pos2 = offcurve.position
 						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
