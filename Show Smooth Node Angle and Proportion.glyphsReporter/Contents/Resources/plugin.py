@@ -288,7 +288,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			masterLayer = glyph.layers[masterId]
 			masterPath = masterLayer.shapes[shapeIndex]
 			baseNode = masterPath.nodes[nodeIndex]
-			prevNode, nextNode = self.getPrevNextNodes(currentPath, nodeIndex)
+			prevNode, nextNode = self.getPrevNextNodes(masterPath, nodeIndex)
 			basePos = baseNode.position
 			for offcurve in [nextNode, prevNode]:
 				# Calculate the position delta to the base node
