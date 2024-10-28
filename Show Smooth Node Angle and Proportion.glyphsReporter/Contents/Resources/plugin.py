@@ -5,7 +5,7 @@ import math
 import traceback
 from GlyphsApp import Glyphs, GSNode, GSPath, OFFCURVE, subtractPoints
 from GlyphsApp.plugins import ReporterPlugin, setUpMenuHelper
-from AppKit import NSMenuItem, NSColor, NSString, NSFont, NSBezierPath, NSLog, NSPoint, NSRect, NSSize, NSFontAttributeName, NSForegroundColorAttributeName
+from AppKit import NSMenuItem, NSColor, NSString, NSFont, NSBezierPath, NSLog, NSPoint, NSRect, NSSize, NSInsetRect, NSFontAttributeName, NSForegroundColorAttributeName
 
 ###########################################################################################################
 #
@@ -271,7 +271,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 	@objc.python_method
 	def drawBackgroundHandles(self, layer, shapeIndex, nodeIndex, scale):
-		# radius = 2
+		radius = 2
 		glyph = layer.parent
 		currentId = layer.layerId
 		currentPath = layer.shapes[shapeIndex]
@@ -299,12 +299,14 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				line.setLineWidth_(1)
 				line.moveToPoint_(basePosition)
 				line.lineToPoint_(offcurvePosition)
-				line.stroke()
 				# Draw nodes
-				# panel = NSRect()
-				# panel.size = NSSize(radius * 2, radius * 2)
-				# panel.origin = NSPoint((x+dx) * scale + origin.x - radius, (y+dy) * scale + origin.y - radius)
-				# NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(panel, radius, radius).stroke()
+				handle = NSRect()
+				handle.size = NSSize(0, 0)
+				handle.origin = offcurvePosition
+				handle = NSInsetRect(handle, -radius, -radius)
+				line.appendBezierPathWithOvalInRect_(handle)
+
+				line.stroke()
 
 	@objc.python_method
 	def foregroundInViewCoords(self, layer=None):
