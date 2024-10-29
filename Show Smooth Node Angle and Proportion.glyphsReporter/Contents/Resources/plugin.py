@@ -164,6 +164,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					# (we are assuming the base node is smooth)
 					angles.append(self.getAngle(pos1, pos2))
 		# Check if the angles are compatible
+		if not angles:
+			return False
 		minAngle = min(angles)
 		maxAngle = max(angles)
 		maxDiff = 1.0
