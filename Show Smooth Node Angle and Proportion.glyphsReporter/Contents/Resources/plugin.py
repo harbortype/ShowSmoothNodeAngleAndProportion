@@ -3,9 +3,9 @@ from __future__ import division, print_function, unicode_literals
 import objc
 import math
 import traceback
-from GlyphsApp import Glyphs, GSNode, OFFCURVE, subtractPoints
+from GlyphsApp import Glyphs, GSNode, GSPath, OFFCURVE, subtractPoints
 from GlyphsApp.plugins import ReporterPlugin, setUpMenuHelper
-from AppKit import NSMenuItem, NSColor, NSString, NSFont, NSBezierPath, NSLog, NSPoint, NSRect, NSSize, NSFontAttributeName, NSForegroundColorAttributeName
+from AppKit import NSMenuItem, NSColor, NSString, NSFont, NSBezierPath, NSLog, NSPoint, NSRect, NSSize, NSInsetRect, NSFontAttributeName, NSForegroundColorAttributeName
 
 ###########################################################################################################
 #
@@ -18,6 +18,8 @@ from AppKit import NSMenuItem, NSColor, NSString, NSFont, NSBezierPath, NSLog, N
 #
 ###########################################################################################################
 
+def hypotenuse(pos1, pos2):
+	return math.hypot(pos1.x - pos2.x, pos1.y - pos2.y)
 
 class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
@@ -139,7 +141,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return prevNode, nextNode
 
 	@objc.python_method
-	def compatibleAngles(self, glyph, pathIndex, nodeIndex):
+	def compatibleAngles(self, glyph, shapeIndex, nodeIndex):
 		# Exit if masters not compatible
 		if not glyph.mastersCompatible:
 			return
@@ -149,7 +151,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			layer = glyph.layers[masterId]
 			# Find the current base node and the coordinates of its surrounding nodes
 			try:
-				currentPath = layer.paths[pathIndex]
+				currentPath = layer.shapes[shapeIndex]
 			except:
 				continue
 			if currentPath:
@@ -162,6 +164,8 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					# (we are assuming the base node is smooth)
 					angles.append(self.getAngle(pos1, pos2))
 		# Check if the angles are compatible
+		if not angles:
+			return False
 		minAngle = min(angles)
 		maxAngle = max(angles)
 		maxDiff = 1.0
@@ -170,7 +174,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		return True
 
 	@objc.python_method
-	def compatibleProportions(self, glyph, pathIndex, nodeIndex, originalHypot):
+	def compatibleProportions(self, glyph, shapeIndex, nodeIndex, originalHypot):
 		# Exit if masters not compatible
 		if not glyph.mastersCompatible:
 			return None
@@ -180,21 +184,20 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			layer = glyph.layers[masterId]
 			# Find the current base node and its surrounding nodes
 			try:
-				currentPath = layer.paths[pathIndex]
+				currentPath = layer.shapes[shapeIndex]
 			except:
 				continue
 			if currentPath:
 				currentNode = currentPath.nodes[nodeIndex]
 				if currentNode:
 					prevNode, nextNode = self.getPrevNextNodes(currentPath, nodeIndex)
-					offcurveNodes = [prevNode, nextNode]
+
 					# Calculate the hypotenuses
 					hypotenuses = []
 					nodePos = currentNode.position
-					for offcurve in offcurveNodes:
-						pos1 = nodePos
-						pos2 = offcurve.position
-						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
+					hypotenuses.append(hypotenuse(nodePos, prevNode.position))
+					hypotenuses.append(hypotenuse(nodePos, nextNode.position))
+
 					# Compare the proportions of one of the hypotenuses
 					factor = 100 / (hypotenuses[0] + hypotenuses[1])
 					originalFactor = 100 / (originalHypot[0] + originalHypot[1])
@@ -269,11 +272,11 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 		self.drawTextAtPoint(string, panelCenter, fontsize, align="center", fontColor=textColor)
 
 	@objc.python_method
-	def drawBackgroundHandles(self, layer, pathIndex, nodeIndex, scale):
-		# radius = 2
+	def drawBackgroundHandles(self, layer, shapeIndex, nodeIndex, scale):
+		radius = 2
 		glyph = layer.parent
 		currentId = layer.layerId
-		currentPath = layer.paths[pathIndex]
+		currentPath = layer.shapes[shapeIndex]
 		currentNode = currentPath.nodes[nodeIndex]
 		currentPos = currentNode.position
 		origin = self.activePosition()
@@ -285,9 +288,9 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				continue
 			# Get the nodes
 			masterLayer = glyph.layers[masterId]
-			masterPath = masterLayer.paths[pathIndex]
+			masterPath = masterLayer.shapes[shapeIndex]
 			baseNode = masterPath.nodes[nodeIndex]
-			prevNode, nextNode = self.getPrevNextNodes(currentPath, nodeIndex)
+			prevNode, nextNode = self.getPrevNextNodes(masterPath, nodeIndex)
 			basePos = baseNode.position
 			for offcurve in [nextNode, prevNode]:
 				# Calculate the position delta to the base node
@@ -298,12 +301,14 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				line.setLineWidth_(1)
 				line.moveToPoint_(basePosition)
 				line.lineToPoint_(offcurvePosition)
-				line.stroke()
 				# Draw nodes
-				# panel = NSRect()
-				# panel.size = NSSize(radius * 2, radius * 2)
-				# panel.origin = NSPoint((x+dx) * scale + origin.x - radius, (y+dy) * scale + origin.y - radius)
-				# NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(panel, radius, radius).stroke()
+				handle = NSRect()
+				handle.size = NSSize(0, 0)
+				handle.origin = offcurvePosition
+				handle = NSInsetRect(handle, -radius, -radius)
+				line.appendBezierPathWithOvalInRect_(handle)
+
+				line.stroke()
 
 	@objc.python_method
 	def foregroundInViewCoords(self, layer=None):
@@ -338,13 +343,12 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					nodeIndex = node.index
 					hypotenuses = []
 					prevNode, nextNode = self.getPrevNextNodes(path, nodeIndex)
-					offcurveNodes = [prevNode, nextNode]
+
 					nodePos = node.position
 					# Calculate the hypotenuses
-					for offcurve in offcurveNodes:
-						pos1 = nodePos
-						pos2 = offcurve.position
-						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
+					hypotenuses.append(hypotenuse(nodePos, prevNode.position))
+					hypotenuses.append(hypotenuse(nodePos, nextNode.position))
+
 					# Check if handles are compatible
 					compatibleProportions = self.compatibleProportions(glyph, pathIndex, nodeIndex, hypotenuses)
 
@@ -358,23 +362,24 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 					if Glyphs.boolDefaults["com.harbortype.showSmoothNodeAngleAndProportion.showRatio"]:
 						ratio = round(hypotenuses[0] / hypotenuses[1], 3)
 						labelPosition = nodePos
-						self.drawRoundedRectangleForStringAtPosition(u"%.2f" % ratio, labelPosition, 10 * scale, angle, compatible=compatibleProportions, angleOffset=270)
+						self.drawRoundedRectangleForStringAtPosition("%.2f" % ratio, labelPosition, 10 * scale, angle, compatible=compatibleProportions, angleOffset=270)
 
 					# Or calculate and draw the percentages
 					else:
 						factor = 100 / (hypotenuses[0] + hypotenuses[1])
+						offcurveNodes = (prevNode, nextNode)  # TODO remvoe loop
 						for i, offcurve in enumerate(offcurveNodes):
 							percent = round(hypotenuses[i] * factor, 1)
 							pos1 = nodePos
 							pos2 = offcurve.position
 							labelPosition = NSPoint(pos1.x + (pos2.x - pos1.x) / 2, pos1.y + (pos2.y - pos1.y) / 2)
-							self.drawRoundedRectangleForStringAtPosition(u"%s%%" % str(percent), labelPosition, 10 * scale, angle, compatible=compatibleProportions)
+							self.drawRoundedRectangleForStringAtPosition("%s%%" % str(percent), labelPosition, 10 * scale, angle, compatible=compatibleProportions)
 
 					# Draw the angle if it different than 0.0 or if it is not compatible
 					angleExceptions = [-90.0, 0.0, 90.0, 180.0]
 					if angle not in angleExceptions or not compatibleAngles:
 						labelPosition = nodePos
-						self.drawRoundedRectangleForStringAtPosition(u"%.1f°" % (angle % 180), labelPosition, 10 * scale, angle, isAngle=True, compatible=compatibleAngles, angleOffset=90)
+						self.drawRoundedRectangleForStringAtPosition("%.1f°" % (angle % 180), labelPosition, 10 * scale, angle, isAngle=True, compatible=compatibleAngles, angleOffset=90)
 
 	@objc.python_method
 	def backgroundInViewCoords(self, layer=None):
@@ -393,7 +398,7 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 			return
 		if not glyph.mastersCompatible:
 			return
-		if not layer.paths:
+		if layer.countOfPaths() == 0:
 			return
 
 		origin = self.activePosition()
@@ -405,7 +410,9 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 				if not (isinstance(selectedNode, GSNode) and selectedNode.type is not OFFCURVE):
 					selectedNode = None
 
-		for pathIndex, path in enumerate(layer.paths):
+		for pathIndex, path in enumerate(layer.shapes):
+			if not isinstance(path, GSPath):
+				continue
 			for nodeIndex, node in enumerate(path.nodes):
 				if node.smooth and node.type is not OFFCURVE:
 
@@ -417,17 +424,15 @@ class showSmoothNodeAngleAndProportion(ReporterPlugin):
 
 					hypotenuses = []
 					prevNode, nextNode = self.getPrevNextNodes(path, nodeIndex)
-					offcurveNodes = [prevNode, nextNode]
 
 					# Draw handles from other masters
-					if selectedNode and (selectedNode in offcurveNodes or node == selectedNode):
+					if selectedNode and (selectedNode == prevNode or selectedNode == nextNode or node == selectedNode):
 						self.drawBackgroundHandles(layer, pathIndex, nodeIndex, scale)
 					nodePos = node.position
 					# Calculate the hypotenuses
-					for offcurve in offcurveNodes:
-						pos1 = nodePos
-						pos2 = offcurve.position
-						hypotenuses.append(math.hypot(pos1.x - pos2.x, pos1.y - pos2.y))
+
+					hypotenuses.append(hypotenuse(nodePos, prevNode.position))
+					hypotenuses.append(hypotenuse(nodePos, nextNode.position))
 
 					# Calculate the percentages
 					# factor = 100 / (hypotenuses[0] + hypotenuses[1])
