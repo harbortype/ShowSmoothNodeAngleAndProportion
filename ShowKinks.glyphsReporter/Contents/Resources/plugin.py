@@ -280,8 +280,14 @@ class showKinks(ReporterPlugin):
 					hypotenuses.append(hypotenuse(nodePos, nextNode.position))
 
 					# Compare the proportions of one of the hypotenuses
-					factor = 100 / (hypotenuses[0] + hypotenuses[1])
-					originalFactor = 100 / (originalHypot[0] + originalHypot[1])
+					try:
+						factor = 100 / (hypotenuses[0] + hypotenuses[1])
+					except ZeroDivisionError:
+						factor = 0
+					try:
+						originalFactor = 100 / (originalHypot[0] + originalHypot[1])
+					except ZeroDivisionError:
+						originalFactor = 0
 					proportion1 = factor * hypotenuses[0]
 					proportion2 = originalFactor * originalHypot[0]
 					# Check if the percentages are compatible
@@ -464,7 +470,10 @@ class showKinks(ReporterPlugin):
 
 					# Or calculate and draw the percentages
 					else:
-						factor = 100 / (hypotenuses[0] + hypotenuses[1])
+						try:
+							factor = 100 / (hypotenuses[0] + hypotenuses[1])
+						except ZeroDivisionError:
+							factor = 0
 						offcurveNodes = (prevNode, nextNode)  # TODO remvoe loop
 						for i, offcurve in enumerate(offcurveNodes):
 							percent = round(hypotenuses[i] * factor, 1)
@@ -539,7 +548,6 @@ class showKinks(ReporterPlugin):
 					hypotenuses.append(hypotenuse(nodePos, nextNode.position))
 
 					# Calculate the percentages
-					# factor = 100 / (hypotenuses[0] + hypotenuses[1])
 					compatibleProportions = self.compatibleProportions(glyph, pathIndex, nodeIndex, hypotenuses)
 
 					# Get the angle
