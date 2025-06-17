@@ -177,7 +177,7 @@ class showKinks(ReporterPlugin):
 			ignoreParam = font.customParameters["Ignore Kinks Along Axes"]
 			if ignoreParam:
 				self.ignoreAxes = [x.strip() for x in ignoreParam.split(",")]
-				for x in range(len(self.ignoreAxes)-1, -1, -1):
+				for x in range(len(self.ignoreAxes) - 1, -1, -1):
 					if self.ignoreAxes[x] not in self.axesTags:
 						del self.ignoreAxes[x]
 
@@ -274,21 +274,20 @@ class showKinks(ReporterPlugin):
 					prevNode, nextNode = self.getPrevNextNodes(currentPath, nodeIndex)
 
 					# Calculate the hypotenuses
-					hypotenuses = []
-					nodePos = currentNode.position
-					hypotenuses.append(hypotenuse(nodePos, prevNode.position))
-					hypotenuses.append(hypotenuse(nodePos, nextNode.position))
 
+					nodePos = currentNode.position
+					hypotenuses1 = hypotenuse(nodePos, prevNode.position)
+					hypotenuses2 = hypotenuse(nodePos, nextNode.position)
 					# Compare the proportions of one of the hypotenuses
 					try:
-						factor = 100 / (hypotenuses[0] + hypotenuses[1])
+						factor = 100 / (hypotenuses1 + hypotenuses2)
 					except ZeroDivisionError:
 						factor = 0
 					try:
 						originalFactor = 100 / (originalHypot[0] + originalHypot[1])
 					except ZeroDivisionError:
 						originalFactor = 0
-					proportion1 = factor * hypotenuses[0]
+					proportion1 = factor * hypotenuses1
 					proportion2 = originalFactor * originalHypot[0]
 					# Check if the percentages are compatible
 					roundError = 0.5
@@ -551,8 +550,8 @@ class showKinks(ReporterPlugin):
 					compatibleProportions = self.compatibleProportions(glyph, pathIndex, nodeIndex, hypotenuses)
 
 					# Get the angle
-					pos1 = prevNode.position
-					pos2 = nextNode.position
+					# pos1 = prevNode.position
+					# pos2 = nextNode.position
 					# angle = self.getAngle(pos1, pos2)
 					compatibleAngles = self.compatibleAngles(glyph, pathIndex, nodeIndex)
 
