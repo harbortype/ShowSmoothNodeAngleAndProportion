@@ -259,8 +259,8 @@ class showKinks(ReporterPlugin):
 		# Exit if masters not compatible
 		if not glyph.mastersCompatibleForLayerIds_(self.layerIds):
 			return None
-		# Check for compatibility against all masters and special layers
 
+		# Check for compatibility against all masters and special layers
 		for layerId in self.layerIds:
 			layer = glyph.layers[layerId]
 			# Find the current base node and its surrounding nodes
@@ -272,12 +272,12 @@ class showKinks(ReporterPlugin):
 				currentNode = currentPath.nodes[nodeIndex]
 				if currentNode:
 					prevNode, nextNode = self.getPrevNextNodes(currentPath, nodeIndex)
+					nodePos = currentNode.position
 
 					# Calculate the hypotenuses
-
-					nodePos = currentNode.position
 					hypotenuses1 = hypotenuse(nodePos, prevNode.position)
 					hypotenuses2 = hypotenuse(nodePos, nextNode.position)
+
 					# Compare the proportions of one of the hypotenuses
 					try:
 						factor = 100 / (hypotenuses1 + hypotenuses2)
@@ -289,6 +289,7 @@ class showKinks(ReporterPlugin):
 						originalFactor = 0
 					proportion1 = factor * hypotenuses1
 					proportion2 = originalFactor * originalHypot[0]
+
 					# Check if the percentages are compatible
 					roundError = 0.5
 					if not (proportion1 >= proportion2 - roundError and proportion1 <= proportion2 + roundError):
@@ -541,8 +542,8 @@ class showKinks(ReporterPlugin):
 					if selectedNode and (selectedNode == prevNode or selectedNode == nextNode or node == selectedNode):
 						self.drawBackgroundHandles(layer, pathIndex, nodeIndex, scale)
 					nodePos = node.position
-					# Calculate the hypotenuses
 
+					# Calculate the hypotenuses
 					hypotenuses.append(hypotenuse(nodePos, prevNode.position))
 					hypotenuses.append(hypotenuse(nodePos, nextNode.position))
 
