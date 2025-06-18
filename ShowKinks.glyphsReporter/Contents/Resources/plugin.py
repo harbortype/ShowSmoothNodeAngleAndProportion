@@ -418,75 +418,76 @@ class showKinks(ReporterPlugin):
 	def foregroundInViewCoords(self, layer=None):
 		""" Draw stuff on the screen """
 		layer = self.activeLayer()
-		if layer:
-			scale = self.getScale()
-			glyph = layer.parent
-			if len(layer.selection) == 1:
-				selectedNode = layer.selection[0]
-				if not isinstance(selectedNode, GSNode):
-					return
-				selectedPath = selectedNode.parent
-				nodeIndex = selectedNode.index
-				prevNode, nextNode = self.getPrevNextNodes(selectedPath, nodeIndex)
+		if not layer:
+			return
+		scale = self.getScale()
+		glyph = layer.parent
+		if len(layer.selection) == 1:
+			selectedNode = layer.selection[0]
+			if not isinstance(selectedNode, GSNode):
+				return
+			selectedPath = selectedNode.parent
+			nodeIndex = selectedNode.index
+			prevNode, nextNode = self.getPrevNextNodes(selectedPath, nodeIndex)
 
-				if selectedNode.type is OFFCURVE:  # finding the next oncurve node
-					if nextNode.type != OFFCURVE:
-						node = nextNode
-					else:
-						node = prevNode
-					prevNode, nextNode = self.getPrevNextNodes(selectedPath, node.index)
+			if selectedNode.type is OFFCURVE:  # finding the next oncurve node
+				if nextNode.type != OFFCURVE:
+					node = nextNode
 				else:
-					node = selectedNode
+					node = prevNode
+				prevNode, nextNode = self.getPrevNextNodes(selectedPath, node.index)
+			else:
+				node = selectedNode
 
-				if node.smooth:
-					path = node.parent
+			if node.smooth:
+				path = node.parent
+				try:
+					pathIndex = layer.indexOfObjectInShapes_(path)
+				except:
+					pathIndex = layer.indexOfPath_(path)
+				nodeIndex = node.index
+				hypotenuses = []
+				prevNode, nextNode = self.getPrevNextNodes(path, nodeIndex)
+
+				nodePos = node.position
+				# Calculate the hypotenuses
+				hypotenuses.append(hypotenuse(nodePos, prevNode.position))
+				hypotenuses.append(hypotenuse(nodePos, nextNode.position))
+
+				# Check if handles are compatible
+				compatibleProportions = self.compatibleProportions(glyph, pathIndex, nodeIndex, hypotenuses)
+
+				# Check if angles are compatible
+				pos1 = prevNode.position
+				pos2 = nextNode.position
+				angle = self.getAngle(pos1, pos2)
+				compatibleAngles = self.compatibleAngles(glyph, pathIndex, nodeIndex)
+
+				# Calculate and draw the ratio
+				if Glyphs.boolDefaults["com.harbortype.showKinks.showRatio"]:
+					ratio = round(hypotenuses[0] / hypotenuses[1], 3)
+					labelPosition = nodePos
+					self.drawRoundedRectangleForStringAtPosition("%.2f" % ratio, labelPosition, 10 * scale, angle, compatible=compatibleProportions, angleOffset=270)
+
+				# Or calculate and draw the percentages
+				else:
 					try:
-						pathIndex = layer.indexOfObjectInShapes_(path)
-					except:
-						pathIndex = layer.indexOfPath_(path)
-					nodeIndex = node.index
-					hypotenuses = []
-					prevNode, nextNode = self.getPrevNextNodes(path, nodeIndex)
+						factor = 100 / (hypotenuses[0] + hypotenuses[1])
+					except ZeroDivisionError:
+						factor = 0
+					offcurveNodes = (prevNode, nextNode)  # TODO remvoe loop
+					for i, offcurve in enumerate(offcurveNodes):
+						percent = round(hypotenuses[i] * factor, 1)
+						pos1 = nodePos
+						pos2 = offcurve.position
+						labelPosition = NSPoint(pos1.x + (pos2.x - pos1.x) / 2, pos1.y + (pos2.y - pos1.y) / 2)
+						self.drawRoundedRectangleForStringAtPosition("%s%%" % str(percent), labelPosition, 10 * scale, angle, compatible=compatibleProportions)
 
-					nodePos = node.position
-					# Calculate the hypotenuses
-					hypotenuses.append(hypotenuse(nodePos, prevNode.position))
-					hypotenuses.append(hypotenuse(nodePos, nextNode.position))
-
-					# Check if handles are compatible
-					compatibleProportions = self.compatibleProportions(glyph, pathIndex, nodeIndex, hypotenuses)
-
-					# Check if angles are compatible
-					pos1 = prevNode.position
-					pos2 = nextNode.position
-					angle = self.getAngle(pos1, pos2)
-					compatibleAngles = self.compatibleAngles(glyph, pathIndex, nodeIndex)
-
-					# Calculate and draw the ratio
-					if Glyphs.boolDefaults["com.harbortype.showKinks.showRatio"]:
-						ratio = round(hypotenuses[0] / hypotenuses[1], 3)
-						labelPosition = nodePos
-						self.drawRoundedRectangleForStringAtPosition("%.2f" % ratio, labelPosition, 10 * scale, angle, compatible=compatibleProportions, angleOffset=270)
-
-					# Or calculate and draw the percentages
-					else:
-						try:
-							factor = 100 / (hypotenuses[0] + hypotenuses[1])
-						except ZeroDivisionError:
-							factor = 0
-						offcurveNodes = (prevNode, nextNode)  # TODO remvoe loop
-						for i, offcurve in enumerate(offcurveNodes):
-							percent = round(hypotenuses[i] * factor, 1)
-							pos1 = nodePos
-							pos2 = offcurve.position
-							labelPosition = NSPoint(pos1.x + (pos2.x - pos1.x) / 2, pos1.y + (pos2.y - pos1.y) / 2)
-							self.drawRoundedRectangleForStringAtPosition("%s%%" % str(percent), labelPosition, 10 * scale, angle, compatible=compatibleProportions)
-
-					# Draw the angle if it different than 0.0 or if it is not compatible
-					angleExceptions = [-90.0, 0.0, 90.0, 180.0]
-					if angle not in angleExceptions or not compatibleAngles:
-						labelPosition = nodePos
-						self.drawRoundedRectangleForStringAtPosition("%.1f°" % (angle % 180), labelPosition, 10 * scale, angle, isAngle=True, compatible=compatibleAngles, angleOffset=90)
+				# Draw the angle if it different than 0.0 or if it is not compatible
+				angleExceptions = [-90.0, 0.0, 90.0, 180.0]
+				if angle not in angleExceptions or not compatibleAngles:
+					labelPosition = nodePos
+					self.drawRoundedRectangleForStringAtPosition("%.1f°" % (angle % 180), labelPosition, 10 * scale, angle, isAngle=True, compatible=compatibleAngles, angleOffset=90)
 
 	@objc.python_method
 	def backgroundInViewCoords(self, layer=None):
