@@ -3,7 +3,7 @@ from __future__ import division, print_function, unicode_literals
 import objc
 import math
 import traceback
-from GlyphsApp import Glyphs, GSNode, GSPath, OFFCURVE, subtractPoints
+from GlyphsApp import Glyphs, GSNode, GSPath, GSBackgroundLayer, OFFCURVE, subtractPoints
 from GlyphsApp.plugins import ReporterPlugin, setUpMenuHelper
 from AppKit import NSMenuItem, NSColor, NSString, NSFont, NSBezierPath, NSLog, NSPoint, NSRect, NSSize, NSInsetRect, NSFontAttributeName, NSForegroundColorAttributeName
 
@@ -420,6 +420,8 @@ class showKinks(ReporterPlugin):
 		layer = self.activeLayer()
 		if not layer:
 			return
+		if isinstance(layer, GSBackgroundLayer):
+			return
 		scale = self.getScale()
 		glyph = layer.parent
 		if len(layer.selection) == 1:
@@ -495,6 +497,8 @@ class showKinks(ReporterPlugin):
 
 		layer = self.activeLayer()
 		if not layer:
+			return
+		if isinstance(layer, GSBackgroundLayer):
 			return
 		font = layer.parent.parent
 		self.axesTags = []
