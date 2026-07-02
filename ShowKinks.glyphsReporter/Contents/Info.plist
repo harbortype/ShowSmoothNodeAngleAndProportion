@@ -14,15 +14,15 @@
 	<key>CFBundleName</key>
 	<string>Show Kinks</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.1</string>
+	<string>2.2</string>
 	<key>CFBundleVersion</key>
-	<string>17</string>
+	<string>18</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/harbortype/showKinks/master/Show%20Smooth%20Node%20Angle%20and%20Proportion.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/harbortype/showKinks</string>
 	<key>productReleaseNotes</key>
-	<string>Fixes division by zero error.</string>
+	<string>Fixes for Glyphs 4.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Harbor Type, 2020</string>
 	<key>NSPrincipalClass</key>

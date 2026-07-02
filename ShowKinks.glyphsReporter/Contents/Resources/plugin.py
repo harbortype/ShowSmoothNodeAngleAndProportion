@@ -114,6 +114,23 @@ class showKinks(ReporterPlugin):
 		except:
 			pass
 
+
+	@objc.python_method
+	def isBracketLayer(self, layer):
+		"""isBracketLayer is a method in Glyphs 3, but a property in Glyphs 4."""
+		if Glyphs.versionNumber >= 4.0:
+			return layer.isBracketLayer
+		return layer.isBracketLayer()
+
+
+	@objc.python_method
+	def isBraceLayer(self, layer):
+		"""isBraceLayer is a method in Glyphs 3, but a property in Glyphs 4."""
+		if Glyphs.versionNumber >= 4.0:
+			return layer.isBraceLayer
+		return layer.isBraceLayer()
+
+
 	@objc.python_method
 	def getAxisTag(self, axis):
 		"""Returns the axis tag."""
@@ -125,7 +142,7 @@ class showKinks(ReporterPlugin):
 	@objc.python_method
 	def getLayerAxesValues(self, thisLayer):
 		"""Returns the layer axes values as a list of floats."""
-		if thisLayer.isBraceLayer():
+		if self.isBraceLayer(thisLayer):
 			axesDict = thisLayer.attributes["coordinates"]
 			if not axesDict:
 				return []
@@ -133,7 +150,7 @@ class showKinks(ReporterPlugin):
 			for axisId in self.axesIds:
 				orderedAxesDict[axisId] = axesDict[axisId]
 			layerValues = list(orderedAxesDict.values())
-		elif thisLayer.isBracketLayer():
+		elif self.isBracketLayer(thisLayer):
 			# TODO
 			axesDict = thisLayer.attributes["axisRules"]
 			if not axesDict:
@@ -181,12 +198,12 @@ class showKinks(ReporterPlugin):
 					if self.ignoreAxes[x] not in self.axesTags:
 						del self.ignoreAxes[x]
 
-		if layer.isBracketLayer():
+		if self.isBracketLayer(layer):
 			currentLayerAxisRules = layer.attributes["axisRules"]
 			if not currentLayerAxisRules:
 				return []
 			for lyr in glyph.layers:
-				if lyr.isBracketLayer():
+				if self.isBracketLayer(lyr):
 					lyrRules = lyr.attributes["axisRules"]
 					if lyrRules == currentLayerAxisRules:
 						layerIds.add(lyr.layerId)
@@ -195,11 +212,11 @@ class showKinks(ReporterPlugin):
 				if self.ignoreAxes:
 					# If any axes should be ignored, discard layers that
 					# do not share the same coordinates on those axes
-					if lyr.layerId == lyr.associatedMasterId or lyr.isBraceLayer():
+					if lyr.layerId == lyr.associatedMasterId or self.isBraceLayer(lyr):
 						if self.matchIgnoredAxes(lyr, activeMaster):
 							layerIds.add(lyr.layerId)
 				else:
-					if lyr.layerId == lyr.associatedMasterId or lyr.isBraceLayer():
+					if lyr.layerId == lyr.associatedMasterId or self.isBraceLayer(lyr):
 						layerIds.add(lyr.layerId)
 
 		return list(layerIds)
