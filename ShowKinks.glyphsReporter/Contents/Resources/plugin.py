@@ -219,6 +219,15 @@ class showKinks(ReporterPlugin):
 					if lyr.layerId == lyr.associatedMasterId or self.isBraceLayer(lyr):
 						layerIds.add(lyr.layerId)
 
+		# Automatically leave out masters and special layers that are not compatible
+		# with the current layer (e.g. a deliberately incompatible copy of a master)
+		currentId = layer.layerId
+		if currentId in layerIds:
+			layerIds = set(
+				layerId for layerId in layerIds
+				if layerId == currentId or glyph.mastersCompatibleForLayerIds_([currentId, layerId])
+			)
+
 		return list(layerIds)
 
 	@objc.python_method

@@ -26,6 +26,10 @@ If all of the above is true, you will get kinks in interpolations. If any one of
 
 Also note I baked a small tolerance of 1° for the angles and 1% for the proportions into the code, as it is very difficult to exactly match angles and handle lengths on a grid. If you believe these values do not produce a satisfactory result, please open an issue.
 
+## Incompatible masters
+
+Masters (and special layers) that are not compatible with the master you are currently editing, e.g. a copy of a master with an extra path, are left out of the check automatically. Kinks are then only checked between the compatible ones. If the current master has no compatible partner, nothing is highlighted.
+
 ## Additional options
 
 ### Show angles of other masters
