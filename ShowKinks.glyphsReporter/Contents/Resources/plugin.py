@@ -5,6 +5,7 @@ import math
 import traceback
 from GlyphsApp import Glyphs, GSNode, GSPath, GSBackgroundLayer, OFFCURVE, subtractPoints
 from GlyphsApp.plugins import ReporterPlugin, setUpMenuHelper
+from Foundation import NSMutableSet
 from AppKit import NSMenuItem, NSColor, NSString, NSFont, NSBezierPath, NSLog, NSPoint, NSRect, NSSize, NSInsetRect, NSFontAttributeName, NSForegroundColorAttributeName
 
 ###########################################################################################################
@@ -183,6 +184,21 @@ class showKinks(ReporterPlugin):
 		return axesMatch
 
 	@objc.python_method
+	def getLayerGroups(self, glyph):
+		"""
+		Returns the groups of interpolation-compatible layer IDs (masters, brace and bracket layers) as sets.
+		Glyphs sorts the layers into groups and takes parameters like 'Enforce Compatibility Check' into account.
+		"""
+		if hasattr(glyph, "layerGroups"):
+			layerGroups = glyph.layerGroups()
+		else:
+			# Glyphs 3.1 does not have layerGroups() yet, so we call the method it wraps
+			layerGroups = glyph.forcedLayerGroupIdsSeenLayers_(NSMutableSet())
+		if not layerGroups:
+			return []
+		return [set(layerGroup) for layerGroup in layerGroups]
+
+	@objc.python_method
 	def getLayerIDs(self, layer):
 		""" Get the masters and special layers IDs """
 		layerIds = set()
@@ -223,10 +239,10 @@ class showKinks(ReporterPlugin):
 		# with the current layer (e.g. a deliberately incompatible copy of a master)
 		currentId = layer.layerId
 		if currentId in layerIds:
-			layerIds = set(
-				layerId for layerId in layerIds
-				if layerId == currentId or glyph.mastersCompatibleForLayerIds_([currentId, layerId])
-			)
+			for layerGroup in self.getLayerGroups(glyph):
+				if currentId in layerGroup:
+					layerIds = layerIds.intersection(layerGroup)
+					break
 
 		return list(layerIds)
 

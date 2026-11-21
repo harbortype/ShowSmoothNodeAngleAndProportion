@@ -28,7 +28,7 @@ Also note I baked a small tolerance of 1° for the angles and 1% for the proport
 
 ## Incompatible masters
 
-Masters (and special layers) that are not compatible with the master you are currently editing, e.g. a copy of a master with an extra path, are left out of the check automatically. Kinks are then only checked between the compatible ones. If the current master has no compatible partner, nothing is highlighted.
+Masters (and special layers) that are not compatible with the master you are currently editing, e.g. a copy of a master with an extra path, are left out of the check automatically (the layers are grouped by Glyphs, taking the ‘Enforce Compatibility Check’ parameter into account). Kinks are then only checked between the compatible ones. If the current master has no compatible partner, nothing is highlighted.
 
 ## Additional options
 
